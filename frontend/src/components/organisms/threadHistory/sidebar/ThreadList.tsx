@@ -199,7 +199,7 @@ const ThreadList = ({
                           {isSelected ? (
                             <ChangeThreadButton
                               threadId={thread.id}
-                              onPatch={() => FetchThread()}
+                              onFetch={() => FetchThread()}
                             />
                           ) : null}
                           {isSelected ? (

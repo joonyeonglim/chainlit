@@ -21,10 +21,10 @@ import SendIcon from "@mui/icons-material/Send";
 
 interface Props {
   threadId: string;
-  onPatch: () => void;
+  onFetch: () => void;
 }
 
-const ChangeThreadButton = ({ threadId, onPatch }: Props) => {
+const ChangeThreadButton = ({ threadId, onFetch }: Props) => {
   const [open, setOpen] = useState(false);
   const accessToken = useRecoilValue(accessTokenState);
   const [message, setMessage] = useState('');
@@ -62,7 +62,7 @@ const ChangeThreadButton = ({ threadId, onPatch }: Props) => {
 
     setMessage(''); // 메시지 전송 후 텍스트 필드 초기화
 
-    onPatch()
+    onFetch()
     handleClose();
   };
 
