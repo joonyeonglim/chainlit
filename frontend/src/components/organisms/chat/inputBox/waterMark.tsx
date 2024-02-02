@@ -4,8 +4,8 @@ import { Stack, Typography } from '@mui/material';
 
 import { Translator } from 'components/i18n';
 
-import LogoDark from 'assets/logo_dark.svg';
-import LogoLight from 'assets/logo_light.svg';
+import LogoDark from 'assets/logo_dark.png';
+import LogoLight from 'assets/logo_light.png';
 
 import { settingsState } from 'state/settings';
 

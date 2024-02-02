@@ -1,12 +1,9 @@
 import { apiClient } from 'api';
-import { SetStateAction, useState} from 'react';
+import { useState } from 'react';
 import {useRecoilValue} from 'recoil';
 import {toast} from 'sonner';
 
-import DeleteOutline from '@mui/icons-material/DeleteOutline';
-import LoadingButton from '@mui/lab/LoadingButton';
 import {IconButton} from '@mui/material';
-import Button from '@mui/material/Button';
 import Edit from '@mui/icons-material/Edit';
 
 import Dialog from '@mui/material/Dialog';
@@ -20,7 +17,6 @@ import {ClientError, accessTokenState} from '@chainlit/react-client';
 import {Translator} from 'components/i18n';
 import InputAdornment from "@mui/material/InputAdornment";
 import TextField from '@mui/material/TextField';
-import SearchIcon from "@mui/icons-material/Search";
 import SendIcon from "@mui/icons-material/Send";
 
 interface Props {
@@ -40,15 +36,11 @@ const ChangeThreadButton = ({threadId}: Props) => {
     setOpen(false);
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     // 여기에 메시지 전송 로직 추가
-    console.log('Sending message:', message);
-    setMessage(''); // 메시지 전송 후 텍스트 필드 초기화
-    handleClose();
-  };
 
-  const handleConfirm = async () => {
-    toast.promise(apiClient.deleteThread(threadId, accessToken), {
+    console.log('Sending message:', message);
+    toast.promise(apiClient.updateThreadName(message, threadId, accessToken), {
       loading: (
         <Translator path="components.organisms.threadHistory.sidebar.ChangeThreadButton.changeChat" />
       ),
@@ -66,6 +58,9 @@ const ChangeThreadButton = ({threadId}: Props) => {
         }
       }
     });
+
+    setMessage(''); // 메시지 전송 후 텍스트 필드 초기화
+
     handleClose();
   };
 

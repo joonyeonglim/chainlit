@@ -563,6 +563,28 @@ async def get_user_threads(
     return JSONResponse(content=res.to_dict())
 
 
+@app.post("/project/thread_name")
+async def delete_thread(
+    request: Request,
+    payload: DeleteThreadRequest,
+    current_user: Annotated[Union[User, PersistedUser], Depends(get_current_user)],
+):
+    """Delete a thread."""
+
+    data_layer = get_data_layer()
+
+    if not data_layer:
+        raise HTTPException(status_code=400, detail="Data persistence is not enabled")
+
+    thread_name = payload.thread_name
+    thread_id = payload.threadId
+
+    await is_thread_author(current_user.identifier, thread_id)
+
+    await data_layer.update_thread_name(thread_name, thread_id)
+    return JSONResponse(content={"success": True})
+
+
 @app.get("/project/thread/{thread_id}")
 async def get_thread(
     request: Request,
