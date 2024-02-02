@@ -36,6 +36,7 @@ from chainlit.markdown import get_markdown_str
 from chainlit.playground.config import get_llm_providers
 from chainlit.telemetry import trace_event
 from chainlit.types import (
+    PatchThreadRequest,
     DeleteThreadRequest,
     GenerationRequest,
     GetThreadsRequest,
@@ -563,20 +564,20 @@ async def get_user_threads(
     return JSONResponse(content=res.to_dict())
 
 
-@app.post("/project/thread_name")
-async def delete_thread(
+@app.patch("/project/thread_name")
+async def patch_thread(
     request: Request,
-    payload: DeleteThreadRequest,
+    payload: PatchThreadRequest,
     current_user: Annotated[Union[User, PersistedUser], Depends(get_current_user)],
 ):
-    """Delete a thread."""
+    """Update a thread."""
 
     data_layer = get_data_layer()
 
     if not data_layer:
         raise HTTPException(status_code=400, detail="Data persistence is not enabled")
 
-    thread_name = payload.thread_name
+    thread_name = payload.threadName
     thread_id = payload.threadId
 
     await is_thread_author(current_user.identifier, thread_id)

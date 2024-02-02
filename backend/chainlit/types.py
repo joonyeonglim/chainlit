@@ -122,6 +122,11 @@ class DeleteThreadRequest(BaseModel):
     threadId: str
 
 
+class PatchThreadRequest(BaseModel):
+    threadId: str
+    threadName: str
+
+
 class GetThreadsRequest(BaseModel):
     pagination: Pagination
     filter: ThreadFilter

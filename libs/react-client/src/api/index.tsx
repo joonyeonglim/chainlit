@@ -43,7 +43,6 @@ type Payload = FormData | any;
 export class APIBase {
   constructor(
     public httpEndpoint: string,
-    public type: 'app' | 'copilot' | 'teams' | 'slack',
     public on401?: () => void,
     public onError?: (error: ClientError) => void
   ) {}
@@ -237,10 +236,11 @@ export class ChainlitAPI extends APIBase {
   }
 
   async updateThreadName(threadName: string, threadId: string, accessToken?: string) {
-    const res = await this.post(`/project/thread_name`, { threadName, threadId }, accessToken);
+    const res = await this.patch(`/project/thread_name`, { threadName, threadId }, accessToken);
 
     return res.json();
   }
+
 
   uploadFile(
     file: File,

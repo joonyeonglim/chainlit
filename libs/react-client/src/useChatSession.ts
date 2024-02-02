@@ -11,7 +11,6 @@ import {
   actionState,
   askUserState,
   avatarState,
-  callFnState,
   chatProfileState,
   chatSettingsInputsState,
   chatSettingsValueState,
@@ -54,8 +53,6 @@ const useChatSession = () => {
   const setLoading = useSetRecoilState(loadingState);
   const setMessages = useSetRecoilState(messagesState);
   const setAskUser = useSetRecoilState(askUserState);
-  const setCallFn = useSetRecoilState(callFnState);
-
   const setElements = useSetRecoilState(elementState);
   const setAvatars = useSetRecoilState(avatarState);
   const setTasklists = useSetRecoilState(tasklistState);
@@ -79,7 +76,6 @@ const useChatSession = () => {
         path: '/ws/socket.io',
         extraHeaders: {
           Authorization: accessToken || '',
-          'X-Chainlit-Client-Type': client.type,
           'X-Chainlit-Session-Id': sessionId,
           'X-Chainlit-Thread-Id': idToResume || '',
           'user-env': JSON.stringify(userEnv),
@@ -183,27 +179,6 @@ const useChatSession = () => {
 
       socket.on('clear_ask', () => {
         setAskUser(undefined);
-      });
-
-      socket.on('call_fn', ({ name, args }, callback) => {
-        const event = new CustomEvent('chainlit-call-fn', {
-          detail: {
-            name,
-            args,
-            callback
-          }
-        });
-        window.dispatchEvent(event);
-
-        setCallFn({ name, args, callback });
-      });
-
-      socket.on('clear_call_fn', () => {
-        setCallFn(undefined);
-      });
-
-      socket.on('call_fn_timeout', () => {
-        setCallFn(undefined);
       });
 
       socket.on('chat_settings', (inputs: any) => {
