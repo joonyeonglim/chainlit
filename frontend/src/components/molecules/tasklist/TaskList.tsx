@@ -1,14 +1,11 @@
-import { useMemo } from 'react';
-import { useRecoilValue } from 'recoil';
+import { useFetch } from 'usehooks-ts';
 
 import { Box, Chip, List, Theme, useTheme } from '@mui/material';
 
-import { useApi, useChatData } from '@chainlit/react-client';
+import { useChatData } from '@chainlit/react-client';
 import { grey } from '@chainlit/react-components/theme';
 
 import { Translator } from 'components/i18n';
-
-import { apiClientState } from 'state/apiClient';
 
 import { ITaskList, Task } from './Task';
 
@@ -24,12 +21,7 @@ const Header = ({ status }: { status: string }) => {
       }}
     >
       <Box
-        sx={{
-          flexGrow: '1',
-          fontWeight: '600',
-          paddingLeft: theme.spacing(1),
-          fontFamily: theme.typography.fontFamily
-        }}
+        sx={{ flexGrow: '1', fontWeight: '600', paddingLeft: theme.spacing(1) }}
       >
         <Translator path="components.molecules.tasklist.TaskList.title" />
       </Box>
@@ -52,7 +44,6 @@ const taskListContainerStyles = (theme: Theme) => ({
   width: '100%',
   display: 'flex',
   flexDirection: 'column',
-  fontFamily: theme.typography.fontFamily!,
   boxShadow:
     theme.palette.mode === 'dark'
       ? '0px 4px 20px 0px rgba(0, 0, 0, 0.20)'
@@ -62,29 +53,16 @@ const taskListContainerStyles = (theme: Theme) => ({
 const TaskList = ({ isMobile }: { isMobile: boolean }) => {
   const theme = useTheme();
   const { tasklists } = useChatData();
-  const apiClient = useRecoilValue(apiClientState);
 
   const tasklist = tasklists[tasklists.length - 1];
 
-  // We remove the base URL since the useApi hook is already set with a base URL.
-  // This ensures we only pass the relative path and search parameters to the hook.
-  const url = useMemo(() => {
-    if (!tasklist?.url) return null;
-    const parsedUrl = new URL(tasklist.url);
-    return parsedUrl.pathname + parsedUrl.search;
-  }, [tasklist?.url]);
+  const url = tasklist?.url;
 
-  const { isLoading, error, data } = useApi<ITaskList>(
-    apiClient,
-    url ? url : null,
-    {
-      keepPreviousData: true
-    }
-  );
+  const { data, error } = useFetch(url);
 
   if (!url) return null;
 
-  if (isLoading && !data) {
+  if (!data && !error) {
     return (
       <div>
         <Translator path="components.molecules.tasklist.TaskList.loading" />

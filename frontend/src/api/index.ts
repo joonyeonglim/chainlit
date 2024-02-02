@@ -7,6 +7,7 @@ const url = import.meta.env.DEV ? devServer : window.origin;
 const serverUrl = new URL(url);
 
 const httpEndpoint = `${serverUrl.protocol}//${serverUrl.host}`;
+export const wsEndpoint = httpEndpoint;
 
 const on401 = () => {
   if (window.location.pathname !== '/login') {
@@ -19,4 +20,4 @@ const onError = (error: ClientError) => {
   toast.error(error.toString());
 };
 
-export const apiClient = new ChainlitAPI(httpEndpoint, 'app', on401, onError);
+export const apiClient = new ChainlitAPI(httpEndpoint, on401, onError);

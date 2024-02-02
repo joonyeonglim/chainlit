@@ -5,7 +5,7 @@ import SpeechRecognition, {
 
 import KeyboardVoiceIcon from '@mui/icons-material/KeyboardVoice';
 import StopCircleIcon from '@mui/icons-material/StopCircle';
-import { IconButton, Theme, Tooltip, useMediaQuery } from '@mui/material';
+import { IconButton, Tooltip } from '@mui/material';
 
 import { Translator } from 'components/i18n';
 
@@ -43,10 +43,6 @@ const SpeechButton = ({ onSpeech, language, disabled }: Props) => {
     }
   }, [transcript, isRecording]);
 
-  const size = useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'))
-    ? 'small'
-    : 'medium';
-
   if (!browserSupportsSpeechRecognition) {
     return null;
   }
@@ -61,13 +57,12 @@ const SpeechButton = ({ onSpeech, language, disabled }: Props) => {
         <IconButton
           disabled={disabled}
           color="inherit"
-          size={size}
           onClick={() => {
             setIsRecording(false);
             SpeechRecognition.stopListening();
           }}
         >
-          <StopCircleIcon fontSize={size} />
+          <StopCircleIcon />
         </IconButton>
       </span>
     </Tooltip>
@@ -81,7 +76,6 @@ const SpeechButton = ({ onSpeech, language, disabled }: Props) => {
         <IconButton
           disabled={disabled}
           color="inherit"
-          size={size}
           onClick={() => {
             setIsRecording(true);
             SpeechRecognition.startListening({
@@ -90,7 +84,7 @@ const SpeechButton = ({ onSpeech, language, disabled }: Props) => {
             });
           }}
         >
-          <KeyboardVoiceIcon fontSize={size} />
+          <KeyboardVoiceIcon />
         </IconButton>
       </span>
     </Tooltip>

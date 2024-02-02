@@ -1,3 +1,4 @@
+import { apiClient } from 'api';
 import { useAuth } from 'api/auth';
 import isEqual from 'lodash/isEqual';
 import uniqBy from 'lodash/uniqBy';
@@ -18,7 +19,6 @@ import {
 
 import { Translator } from 'components/i18n';
 
-import { apiClientState } from 'state/apiClient';
 import { projectSettingsState } from 'state/project';
 import { settingsState } from 'state/settings';
 import { threadsFiltersState } from 'state/threads';
@@ -45,7 +45,6 @@ const _ThreadHistorySideBar = () => {
   const [prevFilters, setPrevFilters] = useState<IThreadFilters>(filters);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
-  const apiClient = useRecoilValue(apiClientState);
 
   const ref = useRef<HTMLDivElement>(null);
   const filtersHasChanged = !isEqual(prevFilters, filters);

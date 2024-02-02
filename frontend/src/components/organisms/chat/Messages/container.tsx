@@ -1,3 +1,4 @@
+import { apiClient } from 'api';
 import { memo, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
@@ -16,7 +17,6 @@ import {
 } from '@chainlit/react-client';
 import { MessageContainer as CMessageContainer } from '@chainlit/react-components';
 
-import { apiClientState } from 'state/apiClient';
 import { playgroundState } from 'state/playground';
 import { highlightMessage, sideViewState } from 'state/project';
 import { projectSettingsState } from 'state/project';
@@ -58,7 +58,6 @@ const MessageContainer = memo(
     const setSideView = useSetRecoilState(sideViewState);
     const highlightedMessage = useRecoilValue(highlightMessage);
     const { uploadFile: _uploadFile } = useChatInteract();
-    const apiClient = useRecoilValue(apiClientState);
 
     const uploadFile = useCallback(
       (file: File, onProgress: (progress: number) => void) => {

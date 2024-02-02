@@ -1,3 +1,4 @@
+import { apiClient } from 'api';
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
@@ -19,8 +20,6 @@ import SideView from 'components/atoms/element/sideView';
 import { Translator } from 'components/i18n';
 import MessageContainer from 'components/organisms/chat/Messages/container';
 
-import { apiClientState } from 'state/apiClient';
-
 type Props = {
   thread?: IThread;
   error?: Error;
@@ -30,7 +29,6 @@ type Props = {
 const Thread = ({ thread, error, isLoading }: Props) => {
   const accessToken = useRecoilValue(accessTokenState);
   const [steps, setSteps] = useState<IStep[]>([]);
-  const apiClient = useRecoilValue(apiClientState);
 
   useEffect(() => {
     if (!thread) return;

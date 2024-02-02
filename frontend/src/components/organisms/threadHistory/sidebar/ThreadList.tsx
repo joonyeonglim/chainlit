@@ -23,6 +23,7 @@ import { grey } from '@chainlit/react-components';
 import { Translator } from 'components/i18n';
 
 import { DeleteThreadButton } from './DeleteThreadButton';
+import { ChangeThreadButton } from './ChangeThreadButton';
 
 interface Props {
   threadHistory?: ThreadHistory;
@@ -189,12 +190,21 @@ const ThreadList = ({
                             {capitalize(thread.metadata?.name || 'Unknown')}
                           </Typography>
                         </Stack>
-                        {isSelected ? (
-                          <DeleteThreadButton
-                            threadId={thread.id}
-                            onDelete={() => handleDeleteThread(thread.id)}
-                          />
-                        ) : null}
+
+                        <Stack direction="row" spacing={1}>
+                          {isSelected ? (
+                            <ChangeThreadButton
+                              threadId={thread.id}
+                            />
+                          ) : null}
+                          {isSelected ? (
+                            <DeleteThreadButton
+                              threadId={thread.id}
+                              onDelete={() => handleDeleteThread(thread.id)}
+                            />
+                          ) : null}
+                        </Stack>
+
                       </Stack>
                     </Stack>
                   );

@@ -57,16 +57,7 @@ const Attachments = (): JSX.Element => {
                   }
                 }}
               >
-                <Close
-                  sx={(theme) => ({
-                    height: 20,
-                    width: 20,
-                    [theme.breakpoints.down('sm')]: {
-                      height: 12,
-                      width: 12
-                    }
-                  })}
-                />
+                <Close sx={{ height: 20, width: 20 }} />
               </CircularProgressIconButton>
             </Box>
           </Tooltip>
@@ -94,16 +85,7 @@ const Attachments = (): JSX.Element => {
                 }}
                 onClick={attachment.remove}
               >
-                <Close
-                  sx={(theme) => ({
-                    height: 20,
-                    width: 20,
-                    [theme.breakpoints.down('sm')]: {
-                      height: 12,
-                      width: 12
-                    }
-                  })}
-                />
+                <Close sx={{ height: 20, width: 20 }} />
               </IconButton>
             </Tooltip>
           ) : null;

@@ -3,6 +3,7 @@ import Telegram from '@mui/icons-material/Telegram';
 import { Tooltip } from '@mui/material';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
 
 import { useChatData, useChatInteract } from '@chainlit/react-client';
 
@@ -34,9 +35,11 @@ const SubmitButton = ({ disabled, onSubmit }: SubmitButtonProps) => {
             <Translator path="components.organisms.chat.inputBox.SubmitButton.sendMessage" />
           }
         >
-          <IconButton disabled={disabled} color="inherit" onClick={onSubmit}>
-            <Telegram />
-          </IconButton>
+          <InputAdornment position="end">
+            <IconButton disabled={disabled} color="inherit" onClick={onSubmit}>
+              <Telegram />
+            </IconButton>
+          </InputAdornment>
         </Tooltip>
       ) : (
         <Tooltip

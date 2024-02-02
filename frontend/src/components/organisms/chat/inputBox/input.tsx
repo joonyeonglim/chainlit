@@ -142,12 +142,6 @@ const Input = memo(
     const startAdornment = (
       <>
         <HistoryButton disabled={disabled} onClick={onHistoryClick} />
-        <UploadButton
-          disabled={disabled}
-          fileSpec={fileSpec}
-          onFileUploadError={onFileUploadError}
-          onFileUpload={onFileUpload}
-        />
         {chatSettingsInputs.length > 0 && (
           <IconButton
             id="chat-settings-open-modal"
@@ -165,6 +159,12 @@ const Input = memo(
             disabled={disabled}
           />
         ) : null}
+        <UploadButton
+          disabled={disabled}
+          fileSpec={fileSpec}
+          onFileUploadError={onFileUploadError}
+          onFileUpload={onFileUpload}
+        />
       </>
     );
 
@@ -226,9 +226,7 @@ const Input = memo(
                 {startAdornment}
               </InputAdornment>
             ),
-            endAdornment: (
-              <SubmitButton onSubmit={submit} disabled={disabled || !value} />
-            )
+            endAdornment: <SubmitButton onSubmit={submit} disabled={disabled} />
           }}
         />
       </Stack>

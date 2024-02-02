@@ -1,3 +1,4 @@
+import { apiClient } from 'api';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
@@ -9,7 +10,6 @@ import { ElementView } from '@chainlit/react-components';
 
 import { useQuery } from 'hooks/query';
 
-import { apiClientState } from 'state/apiClient';
 import { projectSettingsState } from 'state/project';
 
 export default function Element() {
@@ -17,7 +17,6 @@ export default function Element() {
   const query = useQuery();
   const { elements } = useChatData();
   const pSettings = useRecoilValue(projectSettingsState);
-  const apiClient = useRecoilValue(apiClientState);
 
   const [element, setElement] = useState<IMessageElement | null>(null);
   const navigate = useNavigate();

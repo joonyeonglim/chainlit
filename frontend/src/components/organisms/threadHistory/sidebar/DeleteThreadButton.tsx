@@ -1,3 +1,4 @@
+import { apiClient } from 'api';
 import { useState } from 'react';
 import { useRecoilValue } from 'recoil';
 import { toast } from 'sonner';
@@ -16,8 +17,6 @@ import { ClientError, accessTokenState } from '@chainlit/react-client';
 
 import { Translator } from 'components/i18n';
 
-import { apiClientState } from 'state/apiClient';
-
 interface Props {
   threadId: string;
   onDelete: () => void;
@@ -26,7 +25,6 @@ interface Props {
 const DeleteThreadButton = ({ threadId, onDelete }: Props) => {
   const [open, setOpen] = useState(false);
   const accessToken = useRecoilValue(accessTokenState);
-  const apiClient = useRecoilValue(apiClientState);
 
   const handleClickOpen = () => {
     setOpen(true);

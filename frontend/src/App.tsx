@@ -1,3 +1,4 @@
+import { apiClient } from 'api';
 import { useAuth } from 'api/auth';
 import { useEffect } from 'react';
 import { RouterProvider } from 'react-router-dom';
@@ -16,7 +17,6 @@ import SettingsModal from 'components/molecules/settingsModal';
 import ChatSettingsModal from 'components/organisms/chat/settings';
 import PromptPlayground from 'components/organisms/playground';
 
-import { apiClientState } from 'state/apiClient';
 import { projectSettingsState } from 'state/project';
 import { settingsState } from 'state/settings';
 import { userEnvState } from 'state/user';
@@ -44,7 +44,7 @@ declare global {
   }
 }
 
-export function overrideTheme(theme: Theme) {
+function overrideTheme(theme: Theme) {
   const variant = theme.palette.mode;
   const variantOverride = window?.theme?.[variant] as ThemOverride;
   if (variantOverride?.background) {
@@ -69,13 +69,10 @@ export function overrideTheme(theme: Theme) {
 function App() {
   const { theme: themeVariant } = useRecoilValue(settingsState);
   const pSettings = useRecoilValue(projectSettingsState);
-  // @ts-expect-error custom property
-  const fontFamily = window.theme?.font_family;
-  const theme = overrideTheme(makeTheme(themeVariant, fontFamily));
+  const theme = overrideTheme(makeTheme(themeVariant));
   const { isAuthenticated, accessToken } = useAuth();
   const userEnv = useRecoilValue(userEnvState);
   const { connect, chatProfile, setChatProfile } = useChatSession();
-  const apiClient = useRecoilValue(apiClientState);
 
   const pSettingsLoaded = !!pSettings;
 
@@ -116,7 +113,7 @@ function App() {
         position="top-right"
         toastOptions={{
           style: {
-            fontFamily: theme.typography.fontFamily,
+            fontFamily: 'Inter',
             background: theme.palette.background.paper,
             border: `1px solid ${theme.palette.divider}`,
             color: theme.palette.text.primary
