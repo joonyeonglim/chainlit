@@ -37,10 +37,13 @@ const ChangeThreadButton = ({ threadId, onFetch }: Props) => {
     setOpen(false);
   };
 
-  const handleSendMessage = async () => {
-    // 여기에 메시지 전송 로직 추가
+  const handleKeyPress = (event: { key: string; }) => {
+    if (event.key === 'Enter') {
+      handleSendMessage();
+    }
+  };
 
-    console.log('Sending message:', message);
+  const handleSendMessage = async () => {
     toast.promise(apiClient.updateThreadName(message, threadId, accessToken), {
       loading: (
         <Translator path="components.organisms.threadHistory.sidebar.ChangeThreadButton.changeChat" />
@@ -83,7 +86,7 @@ const ChangeThreadButton = ({ threadId, onFetch }: Props) => {
             }
           }}
         >
-          <DialogTitle id="alert-dialog-title">{'Change Name Thread?'}</DialogTitle>
+          <DialogTitle id="alert-dialog-title">{'Change Thread Name?'}</DialogTitle>
           <DialogContent>
             <DialogContentText id="alert-dialog-description">
               <Translator path="components.organisms.threadHistory.sidebar.ChangeThreadButton.confirmMessage" />
@@ -94,10 +97,11 @@ const ChangeThreadButton = ({ threadId, onFetch }: Props) => {
           <DialogActions >
 
             <TextField
-              label="Chat Name"
+              label="Thread Name"
               variant="outlined"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              onKeyPress={handleKeyPress}  // Enter 키 이벤트를 처리하기 위해 추가
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">

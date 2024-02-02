@@ -27,7 +27,7 @@ export default function ResumeButton({ threadId }: Props) {
   const onClick = () => {
     clear();
     setIdToResume(threadId!);
-    toast.success('Chat resumed!');
+    // toast.success('Chat resumed!');
     navigate('/');
   };
 
