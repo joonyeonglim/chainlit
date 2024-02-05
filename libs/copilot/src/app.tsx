@@ -8,8 +8,6 @@ import Widget from 'widget';
 
 import { Theme, ThemeProvider } from '@mui/material/styles';
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 import { overrideTheme } from '@chainlit/app/src/App';
 import { apiClientState } from '@chainlit/app/src/state/apiClient';
 import {

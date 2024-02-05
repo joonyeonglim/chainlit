@@ -44,7 +44,7 @@ declare global {
   }
 }
 
-function overrideTheme(theme: Theme) {
+export function overrideTheme(theme: Theme) {
   const variant = theme.palette.mode;
   const variantOverride = window?.theme?.[variant] as ThemOverride;
   if (variantOverride?.background) {
