@@ -15,7 +15,7 @@ export default function WaterMark() {
   return (
     <Stack mx="auto" className="watermark">
       <a
-        href="https://github.com/Chainlit/chainlit"
+        href="https://evidnet.com/ko/"
         target="_blank"
         style={{
           display: 'flex',

@@ -537,7 +537,7 @@ async def update_feedback(
         raise HTTPException(status_code=500, detail="Data persistence is not enabled")
 
     try:
-        feedback_id = await data_layer.upsert_feedback(feedback=update.feedback)
+        feedback_id = await data_layer.upsert_feedback(current_user=current_user, feedback=update.feedback)
     except Exception as e:
         raise HTTPException(detail=str(e), status_code=500)
 
@@ -597,9 +597,7 @@ async def get_thread(
 
     if not data_layer:
         raise HTTPException(status_code=400, detail="Data persistence is not enabled")
-
     await is_thread_author(current_user.identifier, thread_id)
-
     res = await data_layer.get_thread(thread_id)
     return JSONResponse(content=res)
 

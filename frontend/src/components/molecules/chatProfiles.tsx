@@ -20,6 +20,8 @@ import { projectSettingsState } from 'state/project';
 
 import NewChatDialog from './newChatDialog';
 
+
+
 export default function ChatProfiles() {
   const pSettings = useRecoilValue(projectSettingsState);
   const { chatProfile, setChatProfile } = useChatSession();
@@ -44,6 +46,7 @@ export default function ChatProfiles() {
     }
     setChatProfile(chatProfile);
     setNewChatProfile(null);
+
     clear();
     handleClose();
   };
