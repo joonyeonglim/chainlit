@@ -1,5 +1,9 @@
 #!/bin/bash
 
+pnpm install
+
+npm run build
+
 PACKAGE=$(python3 -c "import site; print(site.getsitepackages()[0])")
 CHAINLIT_HOME=$PACKAGE/chainlit
 
