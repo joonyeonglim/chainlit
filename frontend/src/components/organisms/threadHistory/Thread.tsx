@@ -1,18 +1,11 @@
-import { apiClient } from 'api';
-import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useRecoilValue } from 'recoil';
-import { toast } from 'sonner';
 
 import { Alert, Box, Button, Skeleton, Stack } from '@mui/material';
 
 import {
   IAction,
-  IFeedback,
   IMessageElement,
-  IStep,
   IThread,
-  accessTokenState,
   nestMessages
 } from '@chainlit/react-client';
 
@@ -27,48 +20,9 @@ type Props = {
 };
 
 const Thread = ({ thread, error, isLoading }: Props) => {
-  const accessToken = useRecoilValue(accessTokenState);
-  const [steps, setSteps] = useState<IStep[]>([]);
-
-  useEffect(() => {
-    if (!thread) return;
-    setSteps(thread.steps);
-  }, [thread]);
-
-  const onFeedbackUpdated = useCallback(
-    async (message: IStep, onSuccess: () => void, feedback: IFeedback) => {
-      try {
-        toast.promise(apiClient.setFeedback(feedback, accessToken), {
-          loading: 'Updating',
-          success: (res) => {
-            setSteps((prev) =>
-              prev.map((step) => {
-                if (step.id === message.id) {
-                  return {
-                    ...step,
-                    feedback: {
-                      ...feedback,
-                      id: res.feedbackId
-                    }
-                  };
-                }
-                return step;
-              })
-            );
-
-            onSuccess();
-            return 'Feedback updated!';
-          },
-          error: (err) => {
-            return <span>{err.message}</span>;
-          }
-        });
-      } catch (err) {
-        console.log(err);
-      }
-    },
-    []
-  );
+  // 이전에 여기 있던 useEffect와 관련된 상태 및 로직을 제거했습니다.
+  // onFeedbackUpdated 함수 관련 로직도 제거했습니다.
+  const onFeedbackUpdated = () => {};
 
   if (isLoading) {
     return [1, 2, 3].map((index) => (
@@ -104,7 +58,7 @@ const Thread = ({ thread, error, isLoading }: Props) => {
 
   const elements = thread.elements;
   const actions: IAction[] = [];
-  const messages = nestMessages(steps);
+  const messages = nestMessages(thread.steps); // thread.steps를 직접 사용합니다.
 
   return (
     <Stack direction="row" flexGrow={1} width="100%" height="100%">
@@ -143,7 +97,7 @@ const Thread = ({ thread, error, isLoading }: Props) => {
           avatars={[]}
           actions={actions}
           elements={(elements || []) as IMessageElement[]}
-          onFeedbackUpdated={onFeedbackUpdated}
+          onFeedbackUpdated={onFeedbackUpdated} // 여기에 새로운 함수를 전달합니다.
           messages={messages}
           autoScroll={true}
         />

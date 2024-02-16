@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
 import { toast } from 'sonner';
@@ -20,13 +21,20 @@ export default function ResumeButton({ threadId }: Props) {
   const pSettings = useRecoilValue(projectSettingsState);
   const { clear, setIdToResume } = useChatInteract();
 
+  useEffect(() => {
+    // 조건에 맞을 때 onClick 함수를 자동으로 호출합니다.
+    if (threadId && pSettings?.threadResumable) {
+      onClick();
+    }
+  }, [threadId, pSettings]); // 의존성 배열에 threadId와 pSettings를 추가합니다.
+
   if (!threadId || !pSettings?.threadResumable) {
-    return;
+    return null;
   }
 
   const onClick = () => {
     clear();
-    setIdToResume(threadId!);
+    setIdToResume(threadId);
     // toast.success('Chat resumed!');
     navigate('/');
   };
@@ -45,7 +53,10 @@ export default function ResumeButton({ threadId }: Props) {
         justifyContent: 'center'
       }}
     >
-      <Button id="resumeThread" onClick={onClick} variant="contained">
+      <Button id="resumeThread"
+              onClick={onClick}
+              variant="contained"
+              style={{ display: 'none' }} >
         <Translator path="pages.ResumeButton.resumeChat" />
       </Button>
       <WaterMark />
