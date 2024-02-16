@@ -1,19 +1,22 @@
 import { apiClient } from 'api';
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useRecoilState } from 'recoil';
-
+import { useRecoilState, useRecoilValue } from 'recoil';
 import { Box } from '@mui/material';
-
-import { IThread, threadHistoryState, useApi } from '@chainlit/react-client';
-
-// import { Thread } from 'components/organisms/threadHistory/Thread';
+import { accessTokenState, IThread, threadHistoryState, useApi } from '@chainlit/react-client';
+import { threadsFiltersState } from "../state/threads";
 
 import Page from './Page';
 import ResumeButton from './ResumeButton';
+import { fetchThreads } from 'state/fetchThreads';
+
 
 export default function ThreadPage() {
   const { id } = useParams();
+  const [threadHistory, setThreadHistory] = useRecoilState(threadHistoryState);
+  const accessToken = useRecoilValue(accessTokenState);
+  const filters = useRecoilValue(threadsFiltersState);
+
   const { data, error, isLoading } = useApi<IThread>(
     apiClient,
     id ? `/project/thread/${id}` : null,
@@ -23,18 +26,18 @@ export default function ThreadPage() {
     }
   );
 
-  const [threadHistory, setThreadHistory] = useRecoilState(threadHistoryState);
+  const handleFetchThreads = async () => {
+    if (threadHistory) { // threadHistory가 undefined가 아닌 경우에만 fetchThreads 호출
+      await fetchThreads(threadHistory, setThreadHistory, accessToken, filters);
+    }
+  };
 
   useEffect(() => {
     if (threadHistory?.currentThreadId !== id) {
-      setThreadHistory((prev) => {
-        return { ...prev, currentThreadId: id };
-      });
+      setThreadHistory((prev) => ({ ...prev, currentThreadId: id }));
     }
-  }, [id]);
-  console.log("data!!")
-  console.log(data)
-  console.log("data!!")
+  }, [id, threadHistory?.currentThreadId, setThreadHistory]);
+
   return (
     <Page>
       <Box
@@ -45,10 +48,7 @@ export default function ThreadPage() {
           gap: 2
         }}
       >
-        {/*<Box sx={{ width: '100%', flexGrow: 1, overflow: 'auto' }}>*/}
-        {/*  <Thread thread={data} error={error} />*/}
-        {/*</Box>*/}
-        <ResumeButton threadId={id} isLoading={isLoading} />
+        <ResumeButton threadId={id} isLoading={isLoading} onThreadsFetched={handleFetchThreads} />
       </Box>
     </Page>
   );

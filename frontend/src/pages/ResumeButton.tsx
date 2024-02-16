@@ -8,16 +8,15 @@ import { Box, Button, Skeleton, Stack } from '@mui/material';
 import { useChatInteract } from '@chainlit/react-client';
 
 import { Translator } from 'components/i18n';
-import WaterMark from 'components/organisms/chat/inputBox/waterMark';
-
 import { projectSettingsState } from 'state/project';
 
 interface Props {
   threadId?: string;
   isLoading?: boolean;  // isLoading prop 추가
+  onThreadsFetched: () => Promise<void>; // 추가된 prop
 }
 
-export default function ResumeButton({ threadId, isLoading }: Props) {
+export default function ResumeButton({ threadId, isLoading, onThreadsFetched }: Props) {
   const navigate = useNavigate();
   const pSettings = useRecoilValue(projectSettingsState);
   const { clear, setIdToResume } = useChatInteract();
@@ -60,10 +59,14 @@ export default function ResumeButton({ threadId, isLoading }: Props) {
     ));
   }
 
-  const onClick = () => {
+  const onClick = async () => {
     clear();
     setIdToResume(threadId);
     navigate('/');
+
+    if (onThreadsFetched) {
+      await onThreadsFetched(); // fetchThreads 콜백 함수 호출
+    }
   };
 
   return (
@@ -86,7 +89,6 @@ export default function ResumeButton({ threadId, isLoading }: Props) {
               style={{ display: 'none' }}>
         <Translator path="pages.ResumeButton.resumeChat" />
       </Button>
-      <WaterMark />
     </Box>
   );
 }
