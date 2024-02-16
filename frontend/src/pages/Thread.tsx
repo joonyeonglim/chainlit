@@ -7,7 +7,7 @@ import { Box } from '@mui/material';
 
 import { IThread, threadHistoryState, useApi } from '@chainlit/react-client';
 
-import { Thread } from 'components/organisms/threadHistory/Thread';
+// import { Thread } from 'components/organisms/threadHistory/Thread';
 
 import Page from './Page';
 import ResumeButton from './ResumeButton';
@@ -32,7 +32,9 @@ export default function ThreadPage() {
       });
     }
   }, [id]);
-
+  console.log("data!!")
+  console.log(data)
+  console.log("data!!")
   return (
     <Page>
       <Box
@@ -43,10 +45,10 @@ export default function ThreadPage() {
           gap: 2
         }}
       >
-        <Box sx={{ width: '100%', flexGrow: 1, overflow: 'auto' }}>
-          <Thread thread={data} error={error} isLoading={isLoading} />
-        </Box>
-        <ResumeButton threadId={id} />
+        {/*<Box sx={{ width: '100%', flexGrow: 1, overflow: 'auto' }}>*/}
+        {/*  <Thread thread={data} error={error} />*/}
+        {/*</Box>*/}
+        <ResumeButton threadId={id} isLoading={isLoading} />
       </Box>
     </Page>
   );

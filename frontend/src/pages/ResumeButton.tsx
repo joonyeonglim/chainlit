@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
 import { toast } from 'sonner';
 
-import { Box, Button } from '@mui/material';
+import { Box, Button, Skeleton, Stack } from '@mui/material';
 
 import { useChatInteract } from '@chainlit/react-client';
 
@@ -14,28 +14,55 @@ import { projectSettingsState } from 'state/project';
 
 interface Props {
   threadId?: string;
+  isLoading?: boolean;  // isLoading prop 추가
 }
 
-export default function ResumeButton({ threadId }: Props) {
+export default function ResumeButton({ threadId, isLoading }: Props) {
   const navigate = useNavigate();
   const pSettings = useRecoilValue(projectSettingsState);
   const { clear, setIdToResume } = useChatInteract();
 
   useEffect(() => {
-    // 조건에 맞을 때 onClick 함수를 자동으로 호출합니다.
-    if (threadId && pSettings?.threadResumable) {
+    if (!isLoading && threadId && pSettings?.threadResumable) {
       onClick();
     }
-  }, [threadId, pSettings]); // 의존성 배열에 threadId와 pSettings를 추가합니다.
+  }, [threadId, pSettings, isLoading]); // isLoading을 의존성 배열에 추가
 
   if (!threadId || !pSettings?.threadResumable) {
     return null;
   }
 
+  if (isLoading) {
+    return [1, 2, 3].map((index) => (
+      <Stack
+        key={`thread-skeleton-${index}`}
+        sx={{
+          px: 2,
+          gap: 4,
+          mt: 5,
+          flexDirection: 'row',
+          justifyContent: 'center'
+        }}
+      >
+        <Stack>
+          <Skeleton width={50} />
+          <Skeleton width={50} />
+        </Stack>
+        <Skeleton
+          variant="rounded"
+          sx={{
+            maxWidth: '60rem',
+            width: '100%',
+            height: 100
+          }}
+        />
+      </Stack>
+    ));
+  }
+
   const onClick = () => {
     clear();
     setIdToResume(threadId);
-    // toast.success('Chat resumed!');
     navigate('/');
   };
 
@@ -56,7 +83,7 @@ export default function ResumeButton({ threadId }: Props) {
       <Button id="resumeThread"
               onClick={onClick}
               variant="contained"
-              style={{ display: 'none' }} >
+              style={{ display: 'none' }}>
         <Translator path="pages.ResumeButton.resumeChat" />
       </Button>
       <WaterMark />
