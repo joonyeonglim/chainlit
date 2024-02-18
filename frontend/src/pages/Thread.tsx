@@ -16,7 +16,6 @@ export default function ThreadPage() {
   const [threadHistory, setThreadHistory] = useRecoilState(threadHistoryState);
   const accessToken = useRecoilValue(accessTokenState);
   const filters = useRecoilValue(threadsFiltersState);
-
   const { data, error, isLoading } = useApi<IThread>(
     apiClient,
     id ? `/project/thread/${id}` : null,

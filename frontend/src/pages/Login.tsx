@@ -18,7 +18,6 @@ export default function Login() {
   const navigate = useNavigate();
 
   const { t } = useTranslation();
-
   const handleHeaderAuth = async () => {
     try {
       const json = await apiClient.headerAuth();
