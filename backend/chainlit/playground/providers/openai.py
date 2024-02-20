@@ -1,3 +1,4 @@
+import os
 import json
 from contextlib import contextmanager
 
@@ -46,7 +47,7 @@ openai_common_inputs = [
         min=0.0,
         max=1.0,
         step=0.01,
-        initial=1.0,
+        initial=0.5,
         tooltip="An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.",
     ),
     Slider(
@@ -147,7 +148,6 @@ class ChatOpenAIProvider(BaseProvider):
             llm_settings["stream"] = False
         else:
             llm_settings["stream"] = True
-
         with handle_openai_error():
             response = await client.chat.completions.create(
                 messages=messages,
@@ -368,6 +368,90 @@ ChatOpenAI = ChatOpenAIProvider(
                 "gpt-4-1106-preview",
             ],
             initial_value="gpt-3.5-turbo",
+        ),
+        *openai_common_inputs,
+    ],
+    is_chat=True,
+)
+
+class ChatLocalLLMFromOpenAIProvider(BaseProvider):
+    def format_message(self, message, prompt):
+        message = super().format_message(message, prompt)
+        return message.to_openai()
+
+    async def create_completion(self, request):
+        await super().create_completion(request)
+        from openai import AsyncClient
+
+        env_settings = self.validate_env(request=request)
+
+        client = AsyncClient(api_key=env_settings["api_key"],
+                             base_url=os.getenv('LOCAL_LLM_SERVER_URL', 'http://192.168.0.202:8080/v1'))
+
+        llm_settings = request.generation.settings
+
+        self.require_settings(llm_settings)
+
+        messages = self.create_generation(request)
+
+        if "stop" in llm_settings:
+            stop = llm_settings["stop"]
+
+            # OpenAI doesn't support an empty stop array, clear it
+            if isinstance(stop, list) and len(stop) == 0:
+                stop = None
+
+            llm_settings["stop"] = stop
+
+        if request.generation.functions:
+            llm_settings["functions"] = request.generation.functions
+            llm_settings["stream"] = False
+        else:
+            llm_settings["stream"] = True
+
+        print(f"messages::: {messages}")
+        print(f"llm_settings::: {llm_settings}")
+
+        with handle_openai_error():
+            response = await client.chat.completions.create(
+                messages=messages,
+                **llm_settings,
+            )
+
+        if llm_settings["stream"]:
+            print('stream!!!')
+            async def create_event_stream():
+                async for part in response:
+                    if part.choices and part.choices[0].delta.content:
+                        token = part.choices[0].delta.content
+                        yield token
+                    else:
+                        continue
+
+        else:
+
+            async def create_event_stream():
+                message = response.choices[0].message
+                if function_call := message.function_call:
+                    yield stringify_function_call(function_call)
+                else:
+                    yield message.content or ""
+
+        return StreamingResponse(create_event_stream())
+
+
+LocalLLMChat = ChatLocalLLMFromOpenAIProvider(
+    id="local-llm-chat",
+    env_vars=openai_env_vars,
+    name="Local-LLM",
+    inputs=[
+        Select(
+            id="model",
+            label="Model",
+            values=[
+                "Mistral 7Bx2",
+            ],
+            initial_value="Mistral 7Bx2",
         ),
         *openai_common_inputs,
     ],

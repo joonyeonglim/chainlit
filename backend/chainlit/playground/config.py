@@ -10,6 +10,7 @@ from chainlit.playground.providers import (
     ChatVertexAI,
     GenerationVertexAI,
     Gemini,
+    LocalLLMChat
 )
 
 providers = {
@@ -21,6 +22,7 @@ providers = {
     ChatVertexAI.id: ChatVertexAI,
     GenerationVertexAI.id: GenerationVertexAI,
     Gemini.id: Gemini,
+    LocalLLMChat.id: LocalLLMChat,
 }  # type: Dict[str, BaseProvider]
 
 

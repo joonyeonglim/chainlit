@@ -5,6 +5,7 @@ from .openai import (
     AzureOpenAI,
     ChatOpenAI,
     OpenAI,
+    LocalLLMChat
 )
 from .vertexai import (
     ChatVertexAI,
