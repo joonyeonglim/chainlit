@@ -35,7 +35,6 @@ class ThreadFilter(BaseModel):
     feedback: Optional[Literal[-1, 0, 1]] = None
     userIdentifier: Optional[str] = None
     search: Optional[str] = None
-    after: Optional[str] = None
 
 
 @dataclass

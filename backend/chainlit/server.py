@@ -594,7 +594,6 @@ async def get_thread(
 ):
     """Get a specific thread."""
     data_layer = get_data_layer()
-
     if not data_layer:
         raise HTTPException(status_code=400, detail="Data persistence is not enabled")
     await is_thread_author(current_user.identifier, thread_id)
