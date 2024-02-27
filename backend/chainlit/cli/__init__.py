@@ -41,8 +41,8 @@ def run_chainlit(target: str):
     ssl_certfile_path = None
 
     if use_ssl.lower() == 'true':
-        ssl_keyfile_path = os.environ.get("SSL_KEYFILE_PATH", "/etc/nginx/certs/fullchain.pem")
-        ssl_certfile_path = os.environ.get("SSL_CERTFILE_PATH", "/etc/nginx/certs/privkey.pem")
+        ssl_keyfile_path = os.environ.get("SSL_KEYFILE_PATH", "/etc/nginx/certs/privkey.pem")
+        ssl_certfile_path = os.environ.get("SSL_CERTFILE_PATH", "/etc/nginx/certs/cert.pem")
 
     ws_per_message_deflate_env = os.environ.get(
         "UVICORN_WS_PER_MESSAGE_DEFLATE", "true"
