@@ -67,7 +67,7 @@ export default function Login() {
 
   return (
     <AuthLogin
-      title={t('pages.Login.authTitle')}
+      title="Evidnet Chatbot"
       error={error}
       callbackUrl="/"
       providers={config?.oauthProviders || []}

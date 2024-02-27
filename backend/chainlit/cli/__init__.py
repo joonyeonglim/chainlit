@@ -36,6 +36,13 @@ def cli():
 def run_chainlit(target: str):
     host = os.environ.get("CHAINLIT_HOST", DEFAULT_HOST)
     port = int(os.environ.get("CHAINLIT_PORT", DEFAULT_PORT))
+    use_ssl = os.environ.get("USE_SSL", "false")
+    ssl_keyfile_path = None
+    ssl_certfile_path = None
+
+    if use_ssl.lower() == 'true':
+        ssl_keyfile_path = os.environ.get("SSL_KEYFILE_PATH", "/etc/nginx/certs/privkey.pem")
+        ssl_certfile_path = os.environ.get("SSL_CERTFILE_PATH", "/etc/nginx/certs/cert.pem")
 
     ws_per_message_deflate_env = os.environ.get(
         "UVICORN_WS_PER_MESSAGE_DEFLATE", "true"
@@ -74,6 +81,8 @@ def run_chainlit(target: str):
             port=port,
             log_level=log_level,
             ws_per_message_deflate=ws_per_message_deflate,
+            ssl_keyfile=ssl_keyfile_path,
+            ssl_certfile=ssl_certfile_path,
         )
         server = uvicorn.Server(config)
         await server.serve()

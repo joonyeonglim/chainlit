@@ -34,12 +34,12 @@ interface Props {
 }
 
 const ThreadList = ({
-  threadHistory,
-  error,
-  fetchThreads,
-  isFetching,
-  isLoadingMore
-}: Props) => {
+                      threadHistory,
+                      error,
+                      fetchThreads,
+                      isFetching,
+                      isLoadingMore
+                    }: Props) => {
   const { idToResume } = useChatSession();
   const { clear } = useChatInteract();
   const navigate = useNavigate();

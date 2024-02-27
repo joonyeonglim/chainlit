@@ -11,6 +11,7 @@ logging.basicConfig(
 logging.getLogger("socketio").setLevel(logging.ERROR)
 logging.getLogger("engineio").setLevel(logging.ERROR)
 logging.getLogger("numexpr").setLevel(logging.ERROR)
+logging.getLogger("llmchatbot").setLevel(logging.ERROR)
 
-
+chat_logger = logging.getLogger("llmchatbot.child")
 logger = logging.getLogger("chainlit")

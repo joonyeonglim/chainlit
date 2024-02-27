@@ -9,6 +9,7 @@ export * from './hooks/api';
 export interface IThreadFilters {
   search?: string;
   feedback?: number;
+  after?: string; // after 필드를 string 타입으로 변경
 }
 
 export interface IPageInfo {
