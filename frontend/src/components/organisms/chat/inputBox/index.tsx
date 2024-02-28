@@ -1,3 +1,9 @@
+import React, { useState } from 'react'; // useState 훅 추가
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
+
 import { useAuth } from 'api/auth';
 import { memo, useCallback } from 'react';
 import { useSetRecoilState } from 'recoil';
@@ -35,6 +41,9 @@ const InputBox = memo(
     projectSettings
   }: Props) => {
     const setInputHistory = useSetRecoilState(inputHistoryState);
+    // 체크 박스 상태 추가
+    const [isTranslateChecked, setIsTranslateChecked] = useState(false);
+    const theme = useTheme();
 
     const { user } = useAuth();
     const { sendMessage, replyMessage } = useChatInteract();
@@ -48,7 +57,8 @@ const InputBox = memo(
           name: user?.identifier || 'User',
           type: 'user_message',
           output: msg,
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          translate: isTranslateChecked
         };
 
         setInputHistory((old) => {
@@ -86,7 +96,8 @@ const InputBox = memo(
           name: user?.identifier || 'User',
           type: 'user_message',
           output: msg,
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          translate: isTranslateChecked
         };
 
         replyMessage(message);
@@ -94,6 +105,12 @@ const InputBox = memo(
       },
       [user, replyMessage]
     );
+
+    // 체크 박스 상태 변경 핸들러
+    const handleCheckboxChange = () => {
+      setIsTranslateChecked(!isTranslateChecked);
+    };
+    console.log("isTranslateChecked::: ", isTranslateChecked)
 
     return (
       <Box
@@ -114,6 +131,20 @@ const InputBox = memo(
           <ScrollDownButton onClick={() => setAutoScroll(true)} />
         ) : null}
         <Box>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={isTranslateChecked}
+                onChange={handleCheckboxChange}
+                color="primary"
+              />
+            }
+            label={
+              <Typography style={{ color: theme.palette.text.primary }}>
+                Translate
+              </Typography>
+            }
+          />
           <Input
             fileSpec={fileSpec}
             onFileUpload={onFileUpload}
