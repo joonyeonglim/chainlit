@@ -42,7 +42,6 @@ const InputBox = memo(
   }: Props) => {
     const setInputHistory = useSetRecoilState(inputHistoryState);
     // 체크 박스 상태 추가
-    const [isTranslateChecked, setIsTranslateChecked] = useState(false);
     const theme = useTheme();
 
     const { user } = useAuth();
@@ -50,7 +49,7 @@ const InputBox = memo(
     // const tokenCount = useRecoilValue(tokenCountState);
 
     const onSubmit = useCallback(
-      async (msg: string, attachments?: IAttachment[]) => {
+      async (msg: string, attachments?: IAttachment[], isTranslateChecked?: boolean) => {
         const message: IStep = {
           threadId: '',
           id: uuidv4(),
@@ -89,7 +88,7 @@ const InputBox = memo(
     );
 
     const onReply = useCallback(
-      async (msg: string) => {
+      async (msg: string, isTranslateChecked: boolean) => {
         const message: IStep = {
           threadId: '',
           id: uuidv4(),
@@ -106,11 +105,6 @@ const InputBox = memo(
       [user, replyMessage]
     );
 
-    // 체크 박스 상태 변경 핸들러
-    const handleCheckboxChange = () => {
-      setIsTranslateChecked(!isTranslateChecked);
-    };
-    console.log("isTranslateChecked::: ", isTranslateChecked)
 
     return (
       <Box
@@ -131,20 +125,6 @@ const InputBox = memo(
           <ScrollDownButton onClick={() => setAutoScroll(true)} />
         ) : null}
         <Box>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={isTranslateChecked}
-                onChange={handleCheckboxChange}
-                color="primary"
-              />
-            }
-            label={
-              <Typography style={{ color: theme.palette.text.primary }}>
-                Translate
-              </Typography>
-            }
-          />
           <Input
             fileSpec={fileSpec}
             onFileUpload={onFileUpload}
