@@ -179,6 +179,7 @@ const Input = memo(
     return (
       <Stack
         sx={{
+          width: '102%', // 전체 너비의 80%를 차지하도록 설정
           backgroundColor: 'background.paper',
           borderRadius: 1,
           border: (theme) => `1px solid ${theme.palette.divider}`,
@@ -191,7 +192,7 @@ const Input = memo(
             paddingBottom: '0.75rem',
             paddingTop: '0.75rem',
             color: 'text.primary',
-            lineHeight: '24px'
+            lineHeight: '36px'
           }
         }}
       >
