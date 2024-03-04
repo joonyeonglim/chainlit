@@ -101,7 +101,7 @@ class BaseDataLayer:
             data=[], pageInfo=PageInfo(hasNextPage=False, endCursor=None)
         )
 
-    async def get_thread(self, thread_id: str) -> "Optional[ThreadDict]":
+    async def get_thread(self, identifier: str, thread_id: str) -> "Optional[ThreadDict]":
         return None
 
     async def update_thread(

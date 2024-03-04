@@ -597,7 +597,7 @@ async def get_thread(
     if not data_layer:
         raise HTTPException(status_code=400, detail="Data persistence is not enabled")
     await is_thread_author(current_user.identifier, thread_id)
-    res = await data_layer.get_thread(thread_id)
+    res = await data_layer.get_thread(current_user.identifier, thread_id)
     return JSONResponse(content=res)
 
 
