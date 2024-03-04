@@ -451,9 +451,9 @@ class ChainlitDataLayer:
         return True
 
 
-if api_key := os.environ.get("LITERAL_API_KEY"):
-    server = os.environ.get("LITERAL_SERVER")
-    _data_layer = ChainlitDataLayer(api_key=api_key, server=server)
+# if api_key := os.environ.get("LITERAL_API_KEY"):
+#     server = os.environ.get("LITERAL_SERVER")
+#     _data_layer = ChainlitDataLayer(api_key=api_key, server=server)
 
 
 def get_data_layer():
