@@ -204,7 +204,7 @@ def get_html_template():
     JS_PLACEHOLDER = "<!-- JS INJECTION PLACEHOLDER -->"
     CSS_PLACEHOLDER = "<!-- CSS INJECTION PLACEHOLDER -->"
 
-    default_url = "https://github.com/Chainlit/chainlit"
+    default_url = "https://evidnet.com/ko/"
     url = config.ui.github or default_url
 
     tags = f"""<title>{config.ui.name}</title>
@@ -212,7 +212,7 @@ def get_html_template():
     <meta property="og:type" content="website">
     <meta property="og:title" content="{config.ui.name}">
     <meta property="og:description" content="{config.ui.description}">
-    <meta property="og:image" content="https://chainlit-cloud.s3.eu-west-3.amazonaws.com/logo/chainlit_banner.png">
+    <meta property="og:image" content="https://evidnet.com/wp-content/uploads/2022/11/about-us_img-1.png">
     <meta property="og:url" content="{url}">"""
 
     js = f"""<script>{f"window.theme = {json.dumps(config.ui.theme.to_dict())}; " if config.ui.theme else ""}</script>"""
@@ -597,7 +597,7 @@ async def get_thread(
     if not data_layer:
         raise HTTPException(status_code=400, detail="Data persistence is not enabled")
     await is_thread_author(current_user.identifier, thread_id)
-    res = await data_layer.get_thread(thread_id)
+    res = await data_layer.get_thread(current_user.identifier, thread_id)
     return JSONResponse(content=res)
 
 

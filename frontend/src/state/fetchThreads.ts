@@ -1,6 +1,6 @@
 import { apiClient } from 'api';
 import uniqBy from "lodash/uniqBy";
-import {IThread, IThreadFilters, ThreadHistory, threadHistoryState} from '@chainlit/react-client';
+import {IThreadFilters, ThreadHistory} from '@chainlit/react-client';
 
 const BATCH_SIZE = 20;
 

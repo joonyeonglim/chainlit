@@ -40,6 +40,7 @@ class MessageBase(ABC):
     language: Optional[str] = None
     wait_for_answer = False
     indent: Optional[int] = None
+    translate: bool = False
 
     def __post_init__(self) -> None:
         trace_event(f"init {self.__class__.__name__}")
@@ -59,6 +60,7 @@ class MessageBase(ABC):
             type=type,  # type: ignore
             disable_feedback=_dict.get("disableFeedback", False),
             language=_dict.get("language"),
+            translate=_dict.get("translate"),
         )
 
         return message
@@ -80,6 +82,7 @@ class MessageBase(ABC):
             "isError": self.is_error,
             "waitForAnswer": self.wait_for_answer,
             "indent": self.indent,
+            "translate": self.translate,
         }
 
         return _dict
@@ -207,6 +210,7 @@ class Message(MessageBase):
         type: MessageStepType = "assistant_message",
         id: Optional[str] = None,
         created_at: Union[str, None] = None,
+        translate: bool = False
     ):
         time.sleep(0.001)
         self.language = language
@@ -235,7 +239,8 @@ class Message(MessageBase):
         self.actions = actions if actions is not None else []
         self.elements = elements if elements is not None else []
         self.disable_feedback = disable_feedback
-
+        self.translate = translate
+        
         super().__post_init__()
 
     async def send(self) -> str:

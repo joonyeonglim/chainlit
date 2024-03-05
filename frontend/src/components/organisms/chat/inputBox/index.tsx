@@ -1,3 +1,9 @@
+import React, { useState } from 'react'; // useState 훅 추가
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
+
 import { useAuth } from 'api/auth';
 import { memo, useCallback } from 'react';
 import { useSetRecoilState } from 'recoil';
@@ -35,20 +41,23 @@ const InputBox = memo(
     projectSettings
   }: Props) => {
     const setInputHistory = useSetRecoilState(inputHistoryState);
+    // 체크 박스 상태 추가
+    const theme = useTheme();
 
     const { user } = useAuth();
     const { sendMessage, replyMessage } = useChatInteract();
     // const tokenCount = useRecoilValue(tokenCountState);
 
     const onSubmit = useCallback(
-      async (msg: string, attachments?: IAttachment[]) => {
+      async (msg: string, attachments?: IAttachment[], isTranslateChecked?: boolean) => {
         const message: IStep = {
           threadId: '',
           id: uuidv4(),
           name: user?.identifier || 'User',
           type: 'user_message',
           output: msg,
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          translate: isTranslateChecked
         };
 
         setInputHistory((old) => {
@@ -79,14 +88,15 @@ const InputBox = memo(
     );
 
     const onReply = useCallback(
-      async (msg: string) => {
+      async (msg: string, isTranslateChecked: boolean) => {
         const message: IStep = {
           threadId: '',
           id: uuidv4(),
           name: user?.identifier || 'User',
           type: 'user_message',
           output: msg,
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          translate: isTranslateChecked
         };
 
         replyMessage(message);
@@ -94,6 +104,7 @@ const InputBox = memo(
       },
       [user, replyMessage]
     );
+
 
     return (
       <Box

@@ -77,6 +77,9 @@ const Messages = ({
   const onFeedbackUpdated = useCallback(
     async (message: IStep, onSuccess: () => void, feedback: IFeedback) => {
       try {
+        console.log("message", message)
+        // console.log("message", message)
+        // console.log("message.threadId", message.threadId)
         toast.promise(apiClient.setFeedback(feedback, accessToken), {
           loading: t('components.organisms.chat.Messages.index.updating'),
           success: (res) => {
