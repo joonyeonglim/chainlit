@@ -1,8 +1,4 @@
 import React, { useState } from 'react'; // useState 훅 추가
-import Checkbox from '@mui/material/Checkbox';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Typography from '@mui/material/Typography';
-import { useTheme } from '@mui/material/styles';
 
 import { useAuth } from 'api/auth';
 import { memo, useCallback } from 'react';
@@ -21,6 +17,7 @@ import { inputHistoryState } from 'state/userInputHistory';
 
 import Input from './input';
 import WaterMark from './waterMark';
+import TranslateSwitch from './GoogleTranslateButton'; // TranslateSwitch 컴포넌트 임포트
 
 interface Props {
   fileSpec: FileSpec;
@@ -42,14 +39,13 @@ const InputBox = memo(
   }: Props) => {
     const setInputHistory = useSetRecoilState(inputHistoryState);
     // 체크 박스 상태 추가
-    const theme = useTheme();
 
     const { user } = useAuth();
     const { sendMessage, replyMessage } = useChatInteract();
-    // const tokenCount = useRecoilValue(tokenCountState);
+    const [isTranslateEnabled, setIsTranslateEnabled] = useState(false); // 번역 스위치 상태
 
     const onSubmit = useCallback(
-      async (msg: string, attachments?: IAttachment[], isTranslateChecked?: boolean) => {
+      async (msg: string, attachments?: IAttachment[], isTranslateEnabled?: boolean) => {
         const message: IStep = {
           threadId: '',
           id: uuidv4(),
@@ -57,7 +53,7 @@ const InputBox = memo(
           type: 'user_message',
           output: msg,
           createdAt: new Date().toISOString(),
-          translate: isTranslateChecked
+          translate: isTranslateEnabled
         };
 
         setInputHistory((old) => {
@@ -88,7 +84,7 @@ const InputBox = memo(
     );
 
     const onReply = useCallback(
-      async (msg: string, isTranslateChecked: boolean) => {
+      async (msg: string, isTranslateEnabled?: boolean) => {
         const message: IStep = {
           threadId: '',
           id: uuidv4(),
@@ -96,7 +92,7 @@ const InputBox = memo(
           type: 'user_message',
           output: msg,
           createdAt: new Date().toISOString(),
-          translate: isTranslateChecked
+          translate: isTranslateEnabled
         };
 
         replyMessage(message);
@@ -104,7 +100,6 @@ const InputBox = memo(
       },
       [user, replyMessage]
     );
-
 
     return (
       <Box
@@ -125,12 +120,17 @@ const InputBox = memo(
           <ScrollDownButton onClick={() => setAutoScroll(true)} />
         ) : null}
         <Box>
+          <TranslateSwitch // 번역 스위치 추가
+            isTranslateEnabled={isTranslateEnabled}
+            setIsTranslateEnabled={setIsTranslateEnabled}
+          />
           <Input
             fileSpec={fileSpec}
             onFileUpload={onFileUpload}
             onFileUploadError={onFileUploadError}
             onSubmit={onSubmit}
             onReply={onReply}
+            isTranslateEnabled={isTranslateEnabled}
           />
           {/* {tokenCount > 0 && ( */}
           {/* <Stack flexDirection="row" alignItems="center">

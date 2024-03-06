@@ -19,7 +19,6 @@ import { inputHistoryState } from 'state/userInputHistory';
 import { SubmitButton } from './SubmitButton';
 import UploadButton from './UploadButton';
 import SpeechButton from './speechButton';
-import TranslateSwitch from './GoogleTranslateButton'; // TranslateSwitch 컴포넌트 임포트
 
 
 interface Props {
@@ -27,7 +26,8 @@ interface Props {
   onFileUpload: (payload: File[]) => void;
   onFileUploadError: (error: string) => void;
   onSubmit: (message: string, attachments?: IAttachment[], isTranslateEnabled?: boolean) => void;
-  onReply: (message: string, isTranslateEnabled: boolean) => void;
+  onReply: (message: string, isTranslateEnabled?: boolean) => void;
+  isTranslateEnabled?: boolean
 }
 
 function getLineCount(el: HTMLDivElement) {
@@ -40,12 +40,11 @@ function getLineCount(el: HTMLDivElement) {
 }
 
 const Input = memo(
-  ({ fileSpec, onFileUpload, onFileUploadError, onSubmit, onReply }: Props) => {
+  ({ fileSpec, onFileUpload, onFileUploadError, onSubmit, onReply, isTranslateEnabled }: Props) => {
     const [attachments, setAttachments] = useRecoilState(attachmentsState);
     const [pSettings] = useRecoilState(projectSettingsState);
     const setInputHistory = useSetRecoilState(inputHistoryState);
     const setChatSettingsOpen = useSetRecoilState(chatSettingsOpenState);
-    const [isTranslateEnabled, setIsTranslateEnabled] = useState(false); // 번역 스위치 상태
 
     const ref = useRef<HTMLDivElement>(null);
     const {
@@ -142,13 +141,8 @@ const Input = memo(
       }
     }, []);
 
-    console.log("isTranslateEnabled", isTranslateEnabled)
     const startAdornment = (
       <>
-        <TranslateSwitch // 번역 스위치 추가
-          isTranslateEnabled={isTranslateEnabled}
-          setIsTranslateEnabled={setIsTranslateEnabled}
-        />
         <HistoryButton disabled={disabled} onClick={onHistoryClick} />
         {chatSettingsInputs.length > 0 && (
           <IconButton
@@ -179,7 +173,6 @@ const Input = memo(
     return (
       <Stack
         sx={{
-          width: '102%', // 전체 너비의 80%를 차지하도록 설정
           backgroundColor: 'background.paper',
           borderRadius: 1,
           border: (theme) => `1px solid ${theme.palette.divider}`,
@@ -192,10 +185,11 @@ const Input = memo(
             paddingBottom: '0.75rem',
             paddingTop: '0.75rem',
             color: 'text.primary',
-            lineHeight: '36px'
+            lineHeight: '24px'
           }
         }}
       >
+
         {attachments.length > 0 ? (
           <Box
             sx={{
