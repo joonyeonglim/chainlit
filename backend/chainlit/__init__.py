@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from chainlit.langchain.callbacks import (
         LangchainCallbackHandler,
         AsyncLangchainCallbackHandler,
+        AsyncLangchainCallbackHandlerInvoke
     )
     from chainlit.llama_index.callbacks import LlamaIndexCallbackHandler
 
@@ -308,6 +309,7 @@ __getattr__ = make_module_getattr(
     {
         "LangchainCallbackHandler": "chainlit.langchain.callbacks",
         "AsyncLangchainCallbackHandler": "chainlit.langchain.callbacks",
+        "AsyncLangchainCallbackHandlerInvoke": "chainlit.langchain.callbacks",
         "LlamaIndexCallbackHandler": "chainlit.llama_index.callbacks",
         "HaystackAgentCallbackHandler": "chainlit.haystack.callbacks",
     }
@@ -360,6 +362,7 @@ __all__ = [
     "context",
     "LangchainCallbackHandler",
     "AsyncLangchainCallbackHandler",
+    "AsyncLangchainCallbackHandlerInvoke",
     "LlamaIndexCallbackHandler",
     "HaystackAgentCallbackHandler",
 ]
