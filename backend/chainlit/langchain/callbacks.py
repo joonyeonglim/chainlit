@@ -9,7 +9,7 @@ from chainlit.step import Step, TrueStepType
 from langchain.callbacks.tracers.base import BaseTracer
 from langchain.callbacks.tracers.schemas import Run
 from langchain.schema import BaseMessage
-from langchain.schema.output import ChatGenerationChunk, GenerationChunk
+from langchain.schema.output import ChatGenerationChunk, GenerationChunk, LLMResult
 from literalai import ChatGeneration, CompletionGeneration, GenerationMessage
 
 DEFAULT_ANSWER_PREFIX_TOKENS = ["Final", "Answer", ":"]
@@ -797,6 +797,11 @@ class LangchainTracerInvoke(BaseTracer, GenerationHelper, FinalStreamHelper):
             self.generation_sequence.append(
                 ChatGeneration(messages=[self._convert_message(m) for m in lc_messages])
             )
+        elif type(self.current_generation) == CompletionGeneration:
+            formatted_messages = [
+                self._convert_message(lc_message) for lc_message in lc_messages
+            ]
+            self.current_generation.messages = formatted_messages
         else:
             self._build_chat_formatted_generation(lc_messages)
 
@@ -809,6 +814,9 @@ class LangchainTracerInvoke(BaseTracer, GenerationHelper, FinalStreamHelper):
             metadata=metadata,
             **kwargs,
         )
+
+    def on_llm_end(self, *args, **kwargs: Any) -> Run:
+        return super().on_llm_end(*args, **kwargs)
 
     def on_llm_new_token(
             self,
