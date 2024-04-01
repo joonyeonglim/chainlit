@@ -120,10 +120,11 @@ const InputBox = memo(
           <ScrollDownButton onClick={() => setAutoScroll(true)} />
         ) : null}
         <Box>
-          <TranslateSwitch // 번역 스위치 추가
-            isTranslateEnabled={isTranslateEnabled}
-            setIsTranslateEnabled={setIsTranslateEnabled}
-          />
+          {/* 번역 스위치 OFF */}
+          {/*<TranslateSwitch // 번역 스위치 추가*/}
+          {/*  isTranslateEnabled={isTranslateEnabled}*/}
+          {/*  setIsTranslateEnabled={setIsTranslateEnabled}*/}
+          {/*/>*/}
           <Input
             fileSpec={fileSpec}
             onFileUpload={onFileUpload}
