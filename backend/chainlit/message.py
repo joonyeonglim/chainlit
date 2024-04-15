@@ -22,6 +22,7 @@ from chainlit.types import (
     AskSpec,
     FileDict,
 )
+from literalai import BaseGeneration
 from literalai.step import MessageStepType
 
 
@@ -40,7 +41,8 @@ class MessageBase(ABC):
     language: Optional[str] = None
     wait_for_answer = False
     indent: Optional[int] = None
-    translate: bool = False
+    translate: bool = False,
+    generation: Optional[BaseGeneration] = None
 
     def __post_init__(self) -> None:
         trace_event(f"init {self.__class__.__name__}")
@@ -69,7 +71,6 @@ class MessageBase(ABC):
         _dict: StepDict = {
             "id": self.id,
             "threadId": self.thread_id,
-            "createdAt": self.created_at,
             "start": self.created_at,
             "end": self.created_at,
             "output": self.content,
@@ -83,6 +84,7 @@ class MessageBase(ABC):
             "waitForAnswer": self.wait_for_answer,
             "indent": self.indent,
             "translate": self.translate,
+            "generation": self.generation.to_dict() if self.generation else None,
         }
 
         return _dict
@@ -208,13 +210,14 @@ class Message(MessageBase):
         elements: Optional[List[ElementBased]] = None,
         disable_feedback: bool = False,
         type: MessageStepType = "assistant_message",
+        generation: Optional[BaseGeneration] = None,
         id: Optional[str] = None,
         created_at: Union[str, None] = None,
         translate: bool = False
     ):
         time.sleep(0.001)
         self.language = language
-
+        self.generation = generation
         if isinstance(content, dict):
             try:
                 self.content = json.dumps(content, indent=4, ensure_ascii=False)
@@ -240,7 +243,7 @@ class Message(MessageBase):
         self.elements = elements if elements is not None else []
         self.disable_feedback = disable_feedback
         self.translate = translate
-        
+
         super().__post_init__()
 
     async def send(self) -> str:
