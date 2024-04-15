@@ -1,6 +1,5 @@
 import asyncio
 import uuid
-from datetime import datetime
 from typing import Any, Dict, List, Literal, Optional, Union, cast
 
 from chainlit.data import get_data_layer
@@ -18,6 +17,7 @@ from chainlit.types import (
     UIMessagePayload,
 )
 from chainlit.user import PersistedUser
+from literalai.helper import utc_now
 from socketio.exceptions import TimeoutError
 
 
@@ -177,8 +177,8 @@ class ChainlitEmitter(BaseChainlitEmitter):
             try:
                 await data_layer.update_thread(
                     thread_id=self.session.thread_id,
+                    name=interaction,
                     user_id=user_id,
-                    metadata={"name": interaction},
                 )
             except Exception as e:
                 logger.error(f"Error updating thread: {e}")
@@ -196,7 +196,7 @@ class ChainlitEmitter(BaseChainlitEmitter):
 
         message = Message.from_dict(step_dict)
         # Overwrite the created_at timestamp with the current time
-        message.created_at = datetime.utcnow().isoformat()
+        message.created_at = utc_now()
 
         asyncio.create_task(message._create())
 

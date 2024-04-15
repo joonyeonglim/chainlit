@@ -191,7 +191,7 @@ const ThreadList = ({
                               textOverflow: 'ellipsis'
                             }}
                           >
-                            {capitalize(thread.metadata?.name || 'Unknown')}
+                            {capitalize(thread.name || 'Unknown')}
                           </Typography>
                         </Stack>
 

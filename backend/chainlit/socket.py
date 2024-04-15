@@ -1,7 +1,7 @@
 import asyncio
 import json
+import time
 import uuid
-from datetime import datetime
 from typing import Any, Dict, Literal
 
 from chainlit.action import Action
@@ -46,7 +46,7 @@ async def resume_thread(session: WebsocketSession):
     user_is_author = author == session.user.identifier
 
     if user_is_author:
-        metadata = thread["metadata"] or {}
+        metadata = thread.get("metadata", {})
         user_sessions[session.id] = metadata.copy()
         if chat_profile := metadata.get("chat_profile"):
             session.chat_profile = chat_profile
@@ -149,7 +149,6 @@ async def connect(sid, environ, auth):
         thread_id=environ.get("HTTP_X_CHAINLIT_THREAD_ID"),
     )
 
-
     trace_event("connection_successful")
     return True
 
@@ -237,6 +236,8 @@ async def process_message(session: WebsocketSession, payload: UIMessagePayload):
         message = await context.emitter.process_user_message(payload)
 
         if config.code.on_message:
+            # Sleep 1ms to make sure any children step starts after the message step start
+            time.sleep(0.001)
             await config.code.on_message(message)
     except InterruptedError:
         pass

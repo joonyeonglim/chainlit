@@ -3,7 +3,6 @@ import json
 import time
 import uuid
 from abc import ABC
-from datetime import datetime
 from typing import Dict, List, Optional, Union, cast
 
 from chainlit.action import Action
@@ -23,6 +22,7 @@ from chainlit.types import (
     FileDict,
 )
 from literalai import BaseGeneration
+from literalai.helper import utc_now
 from literalai.step import MessageStepType
 
 
@@ -151,7 +151,7 @@ class MessageBase(ABC):
 
     async def send(self):
         if not self.created_at:
-            self.created_at = datetime.utcnow().isoformat()
+            self.created_at = utc_now()
         if self.content is None:
             self.content = ""
 
@@ -371,7 +371,7 @@ class AskUserMessage(AskMessageBase):
         """
         trace_event("send_ask_user")
         if not self.created_at:
-            self.created_at = datetime.utcnow().isoformat()
+            self.created_at = utc_now()
 
         if config.code.author_rename:
             self.author = await config.code.author_rename(self.author)
@@ -443,7 +443,7 @@ class AskFileMessage(AskMessageBase):
         trace_event("send_ask_file")
 
         if not self.created_at:
-            self.created_at = datetime.utcnow().isoformat()
+            self.created_at = utc_now()
 
         if self.streaming:
             self.streaming = False
@@ -516,7 +516,7 @@ class AskActionMessage(AskMessageBase):
         trace_event("send_ask_action")
 
         if not self.created_at:
-            self.created_at = datetime.utcnow().isoformat()
+            self.created_at = utc_now()
 
         if self.streaming:
             self.streaming = False
