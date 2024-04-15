@@ -1,19 +1,17 @@
+// ResumeButton.tsx
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
 import { toast } from 'sonner';
-
 import { Box, Button, Skeleton, Stack } from '@mui/material';
-
 import { useChatInteract } from '@chainlit/react-client';
-
 import { Translator } from 'components/i18n';
 import { projectSettingsState } from 'state/project';
 
 interface Props {
   threadId?: string;
-  isLoading?: boolean;  // isLoading prop 추가
-  onThreadsFetched: () => Promise<void>; // 추가된 prop
+  isLoading?: boolean;
+  onThreadsFetched: () => Promise<void>;
 }
 
 export default function ResumeButton({ threadId, isLoading, onThreadsFetched }: Props) {
@@ -25,38 +23,42 @@ export default function ResumeButton({ threadId, isLoading, onThreadsFetched }: 
     if (!isLoading && threadId && pSettings?.threadResumable) {
       onClick();
     }
-  }, [threadId, pSettings, isLoading]); // isLoading을 의존성 배열에 추가
+  }, [threadId, pSettings, isLoading]);
 
   if (!threadId || !pSettings?.threadResumable) {
     return null;
   }
 
   if (isLoading) {
-    return [1, 2, 3].map((index) => (
-      <Stack
-        key={`thread-skeleton-${index}`}
-        sx={{
-          px: 2,
-          gap: 4,
-          mt: 5,
-          flexDirection: 'row',
-          justifyContent: 'center'
-        }}
-      >
-        <Stack>
-          <Skeleton width={50} />
-          <Skeleton width={50} />
-        </Stack>
-        <Skeleton
-          variant="rounded"
-          sx={{
-            maxWidth: '60rem',
-            width: '100%',
-            height: 100
-          }}
-        />
-      </Stack>
-    ));
+    return (
+      <React.Fragment>
+        {[1, 2, 3].map((index) => (
+          <Stack
+            key={`thread-skeleton-${index}`}
+            sx={{
+              px: 2,
+              gap: 4,
+              mt: 5,
+              flexDirection: 'row',
+              justifyContent: 'center'
+            }}
+          >
+            <Stack>
+              <Skeleton width={50} />
+              <Skeleton width={50} />
+            </Stack>
+            <Skeleton
+              variant="rounded"
+              sx={{
+                maxWidth: '60rem',
+                width: '100%',
+                height: 100
+              }}
+            />
+          </Stack>
+        ))}
+      </React.Fragment>
+    );
   }
 
   const onClick = async () => {
@@ -65,7 +67,7 @@ export default function ResumeButton({ threadId, isLoading, onThreadsFetched }: 
     navigate('/');
 
     if (onThreadsFetched) {
-      await onThreadsFetched(); // fetchThreads 콜백 함수 호출
+      await onThreadsFetched();
     }
   };
 

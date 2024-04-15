@@ -4,9 +4,7 @@ from chainlit.playground.provider import BaseProvider
 from chainlit.playground.providers import (
     Anthropic,
     AzureChatOpenAI,
-    AzureOpenAI,
     ChatOpenAI,
-    OpenAI,
     ChatVertexAI,
     GenerationVertexAI,
     Gemini,
@@ -15,9 +13,7 @@ from chainlit.playground.providers import (
 
 providers = {
     AzureChatOpenAI.id: AzureChatOpenAI,
-    AzureOpenAI.id: AzureOpenAI,
     ChatOpenAI.id: ChatOpenAI,
-    OpenAI.id: OpenAI,
     Anthropic.id: Anthropic,
     ChatVertexAI.id: ChatVertexAI,
     GenerationVertexAI.id: GenerationVertexAI,

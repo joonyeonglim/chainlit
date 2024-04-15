@@ -15,10 +15,12 @@ import {
   ITool,
   useChatInteract
 } from '@chainlit/react-client';
-import { MessageContainer as CMessageContainer } from '@chainlit/react-components';
+import { sideViewState } from '@chainlit/react-client';
+
+import { MessageContainer as CMessageContainer } from 'components/molecules/messages/MessageContainer';
 
 import { playgroundState } from 'state/playground';
-import { highlightMessage, sideViewState } from 'state/project';
+import { highlightMessage } from 'state/project';
 import { projectSettingsState } from 'state/project';
 import { settingsState } from 'state/settings';
 
@@ -35,6 +37,11 @@ interface Props {
     onSuccess: () => void,
     feedback: IFeedback
   ) => void;
+  onFeedbackDeleted: (
+    message: IStep,
+    onSuccess: () => void,
+    feedback: string
+  ) => void;
   callAction?: (action: IAction) => void;
   setAutoScroll?: (autoScroll: boolean) => void;
 }
@@ -49,6 +56,7 @@ const MessageContainer = memo(
     elements,
     messages,
     onFeedbackUpdated,
+    onFeedbackDeleted,
     callAction,
     setAutoScroll
   }: Props) => {
@@ -162,6 +170,7 @@ const MessageContainer = memo(
         onElementRefClick,
         onError,
         onFeedbackUpdated,
+        onFeedbackDeleted,
         onPlaygroundButtonClick
       };
     }, [

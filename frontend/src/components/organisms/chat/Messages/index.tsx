@@ -1,6 +1,5 @@
 import { apiClient } from 'api';
 import { useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { toast } from 'sonner';
 
@@ -17,6 +16,10 @@ import {
   useChatSession
 } from '@chainlit/react-client';
 
+import { useTranslation } from 'react-i18next';
+
+
+import { apiClientState } from 'state/apiClient';
 import { IProjectSettings } from 'state/project';
 
 import MessageContainer from './container';
@@ -106,6 +109,34 @@ const Messages = ({
     []
   );
 
+  const onFeedbackDeleted = useCallback(
+    async (message: IStep, onSuccess: () => void, feedbackId: string) => {
+      try {
+        toast.promise(apiClient.deleteFeedback(feedbackId, accessToken), {
+          loading: t('components.organisms.chat.Messages.index.updating'),
+          success: () => {
+            setMessages((prev) =>
+              updateMessageById(prev, message.id, {
+                ...message,
+                feedback: undefined
+              })
+            );
+            onSuccess();
+            return t(
+              'components.organisms.chat.Messages.index.feedbackUpdated'
+            );
+          },
+          error: (err) => {
+            return <span>{err.message}</span>;
+          }
+        });
+      } catch (err) {
+        console.log(err);
+      }
+    },
+    []
+  );
+
   return !idToResume &&
     !messages.length &&
     projectSettings?.ui.show_readme_as_default ? (
@@ -124,6 +155,7 @@ const Messages = ({
       messages={messages}
       autoScroll={autoScroll}
       onFeedbackUpdated={onFeedbackUpdated}
+      onFeedbackDeleted={onFeedbackDeleted}
       callAction={callActionWithToast}
       setAutoScroll={setAutoScroll}
     />

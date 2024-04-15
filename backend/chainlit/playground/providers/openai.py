@@ -168,8 +168,8 @@ class ChatOpenAIProvider(BaseProvider):
 
             async def create_event_stream():
                 message = response.choices[0].message
-                if function_call := message.function_call:
-                    yield stringify_function_call(function_call)
+                if tool_calls := message.tool_calls:
+                    yield json.dumps([tc.model_dump() for tc in tool_calls], indent=4, ensure_ascii=False)
                 else:
                     yield message.content or ""
 
@@ -335,8 +335,8 @@ class AzureChatOpenAIProvider(BaseProvider):
 
             async def create_event_stream():
                 message = response.choices[0].message
-                if function_call := message.function_call:
-                    yield stringify_function_call(function_call)
+                if tool_calls := message.tool_calls:
+                    yield json.dumps([tc.model_dump() for tc in tool_calls], indent=4, ensure_ascii=False)
                 else:
                     yield message.content or ""
 
@@ -481,12 +481,4 @@ AzureChatOpenAI = AzureChatOpenAIProvider(
     name="AzureChatOpenAI",
     inputs=openai_common_inputs,
     is_chat=True,
-)
-
-AzureOpenAI = AzureOpenAIProvider(
-    id="azure",
-    name="AzureOpenAI",
-    env_vars=azure_openai_env_vars,
-    inputs=openai_common_inputs,
-    is_chat=False,
 )

@@ -38,6 +38,7 @@ from chainlit.telemetry import trace_event
 from chainlit.types import (
     PatchThreadRequest,
     DeleteThreadRequest,
+    DeleteFeedbackRequest,
     GenerationRequest,
     GetThreadsRequest,
     Theme,
@@ -54,6 +55,7 @@ from fastapi import (
     UploadFile,
     status,
 )
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
@@ -140,7 +142,12 @@ async def lifespan(app: FastAPI):
 def get_build_dir(local_target: str, packaged_target: str):
     local_build_dir = os.path.join(PACKAGE_ROOT, local_target, "dist")
     packaged_build_dir = os.path.join(BACKEND_ROOT, packaged_target, "dist")
-    if os.path.exists(local_build_dir):
+
+    if config.ui.custom_build and os.path.exists(
+        os.path.join(APP_ROOT, config.ui.custom_build, packaged_target, "dist")
+    ):
+        return os.path.join(APP_ROOT, config.ui.custom_build, packaged_target, "dist")
+    elif os.path.exists(local_build_dir):
         return local_build_dir
     elif os.path.exists(packaged_build_dir):
         return packaged_build_dir
@@ -182,10 +189,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.add_middleware(GZipMiddleware)
+
 socket = SocketManager(
     app,
     cors_allowed_origins=[],
     async_mode="asgi",
+    socketio_path="/ws/socket.io",
 )
 
 
@@ -499,6 +509,22 @@ async def get_providers(
     return JSONResponse(content={"providers": providers})
 
 
+@app.get("/project/translations")
+async def project_translations(
+    language: str = Query(default="en-US", description="Language code"),
+):
+    """Return project translations."""
+
+    # Load translation based on the provided language
+    translation = config.load_translation(language)
+
+    return JSONResponse(
+        content={
+            "translation": translation,
+        }
+    )
+
+
 @app.get("/project/settings")
 async def project_settings(
     current_user: Annotated[Union[User, PersistedUser], Depends(get_current_user)],
@@ -506,8 +532,8 @@ async def project_settings(
 ):
     """Return project settings. This is called by the UI before the establishing the websocket connection."""
 
-    # Load translation based on the provided language
-    translation = config.load_translation(language)
+    # Load the markdown file based on the provided language
+    markdown = get_markdown_str(config.root, language)
 
     profiles = []
     if config.code.set_chat_profiles:
@@ -521,9 +547,8 @@ async def project_settings(
             "userEnv": config.project.user_env,
             "dataPersistence": get_data_layer() is not None,
             "threadResumable": bool(config.code.on_chat_resume),
-            "markdown": get_markdown_str(config.root),
+            "markdown": markdown,
             "chatProfiles": profiles,
-            "translation": translation,
         }
     )
 
@@ -547,6 +572,25 @@ async def update_feedback(
     return JSONResponse(content={"success": True, "feedbackId": feedback_id})
 
 
+@app.delete("/feedback")
+async def delete_feedback(
+    request: Request,
+    payload: DeleteFeedbackRequest,
+    current_user: Annotated[Union[User, PersistedUser], Depends(get_current_user)],
+):
+    """Delete a feedback."""
+
+    data_layer = get_data_layer()
+
+    if not data_layer:
+        raise HTTPException(status_code=400, detail="Data persistence is not enabled")
+
+    feedback_id = payload.feedbackId
+
+    await data_layer.delete_feedback(feedback_id)
+    return JSONResponse(content={"success": True})
+
+
 @app.post("/project/threads")
 async def get_user_threads(
     request: Request,
@@ -561,6 +605,7 @@ async def get_user_threads(
     if not data_layer:
         raise HTTPException(status_code=400, detail="Data persistence is not enabled")
 
+    payload.filter.userId = current_user.id
     payload.filter.userIdentifier = current_user.identifier
 
     res = await data_layer.list_threads(payload.pagination, payload.filter)
@@ -582,7 +627,6 @@ async def patch_thread(
 
     thread_name = payload.threadName
     thread_id = payload.threadId
-
     await is_thread_author(current_user.identifier, thread_id)
 
     await data_layer.update_thread_name(thread_name, thread_id)
@@ -755,6 +799,11 @@ async def get_logo(theme: Optional[Theme] = Query(Theme.light)):
     media_type, _ = mimetypes.guess_type(logo_path)
 
     return FileResponse(logo_path, media_type=media_type)
+
+
+@app.head("/")
+def status_check():
+    return {"message": "Site is operational"}
 
 
 def register_wildcard_route_handler():
