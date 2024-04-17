@@ -145,6 +145,7 @@
             "executedSuccessfully": "executed successfully",
             "failed": "failed",
             "feedbackUpdated": "Feedback updated",
+            "feedbackSuccess": "Feedback uploaded",
             "updating": "Updating"
           }
         },

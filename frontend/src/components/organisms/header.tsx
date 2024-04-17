@@ -76,13 +76,13 @@ const Nav = ({ dataPersistence, hasReadme, matches }: NavProps) => {
   }
 
   const tabs = [
-    { to: '/', label: <Translator path="components.organisms.header.chat" /> }
+    { to: '/', label: <Translator path="components.organisms.threadHistory.organisms.header.chat" /> }
   ];
 
   if (hasReadme) {
     tabs.push({
       to: '/readme',
-      label: <Translator path="components.organisms.header.readme" />
+      label: <Translator path="components.organisms.threadHistory.organisms.header.readme" />
     });
   }
 

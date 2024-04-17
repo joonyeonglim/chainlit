@@ -598,7 +598,6 @@ async def get_user_threads(
     current_user: Annotated[Union[User, PersistedUser], Depends(get_current_user)],
 ):
     """Get the threads page by page."""
-    # Only show the current user threads
 
     data_layer = get_data_layer()
 
