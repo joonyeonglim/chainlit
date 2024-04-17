@@ -3,7 +3,6 @@ import json
 import time
 import uuid
 from abc import ABC
-from datetime import datetime
 from typing import Dict, List, Optional, Union, cast
 
 from chainlit.action import Action
@@ -22,6 +21,8 @@ from chainlit.types import (
     AskSpec,
     FileDict,
 )
+from literalai import BaseGeneration
+from literalai.helper import utc_now
 from literalai.step import MessageStepType
 
 
@@ -38,9 +39,12 @@ class MessageBase(ABC):
     persisted = False
     is_error = False
     language: Optional[str] = None
+    metadata: Optional[Dict] = None
+    tags: Optional[List[str]] = None
     wait_for_answer = False
     indent: Optional[int] = None
-    translate: bool = False
+    translate: bool = False,
+    generation: Optional[BaseGeneration] = None
 
     def __post_init__(self) -> None:
         trace_event(f"init {self.__class__.__name__}")
@@ -69,7 +73,6 @@ class MessageBase(ABC):
         _dict: StepDict = {
             "id": self.id,
             "threadId": self.thread_id,
-            "createdAt": self.created_at,
             "start": self.created_at,
             "end": self.created_at,
             "output": self.content,
@@ -83,6 +86,9 @@ class MessageBase(ABC):
             "waitForAnswer": self.wait_for_answer,
             "indent": self.indent,
             "translate": self.translate,
+            "generation": self.generation.to_dict() if self.generation else None,
+            "metadata": self.metadata or {},
+            "tags": self.tags,
         }
 
         return _dict
@@ -149,7 +155,7 @@ class MessageBase(ABC):
 
     async def send(self):
         if not self.created_at:
-            self.created_at = datetime.utcnow().isoformat()
+            self.created_at = utc_now()
         if self.content is None:
             self.content = ""
 
@@ -208,13 +214,16 @@ class Message(MessageBase):
         elements: Optional[List[ElementBased]] = None,
         disable_feedback: bool = False,
         type: MessageStepType = "assistant_message",
+        generation: Optional[BaseGeneration] = None,
+        metadata: Optional[Dict] = None,
+        tags: Optional[List[str]] = None,
         id: Optional[str] = None,
         created_at: Union[str, None] = None,
         translate: bool = False
     ):
         time.sleep(0.001)
         self.language = language
-
+        self.generation = generation
         if isinstance(content, dict):
             try:
                 self.content = json.dumps(content, indent=4, ensure_ascii=False)
@@ -234,13 +243,16 @@ class Message(MessageBase):
         if created_at:
             self.created_at = created_at
 
+        self.metadata = metadata
+        self.tags = tags
+
         self.author = author
         self.type = type
         self.actions = actions if actions is not None else []
         self.elements = elements if elements is not None else []
         self.disable_feedback = disable_feedback
         self.translate = translate
-        
+
         super().__post_init__()
 
     async def send(self) -> str:
@@ -368,7 +380,7 @@ class AskUserMessage(AskMessageBase):
         """
         trace_event("send_ask_user")
         if not self.created_at:
-            self.created_at = datetime.utcnow().isoformat()
+            self.created_at = utc_now()
 
         if config.code.author_rename:
             self.author = await config.code.author_rename(self.author)
@@ -440,7 +452,7 @@ class AskFileMessage(AskMessageBase):
         trace_event("send_ask_file")
 
         if not self.created_at:
-            self.created_at = datetime.utcnow().isoformat()
+            self.created_at = utc_now()
 
         if self.streaming:
             self.streaming = False
@@ -513,7 +525,7 @@ class AskActionMessage(AskMessageBase):
         trace_event("send_ask_action")
 
         if not self.created_at:
-            self.created_at = datetime.utcnow().isoformat()
+            self.created_at = utc_now()
 
         if self.streaming:
             self.streaming = False
@@ -543,7 +555,7 @@ class AskActionMessage(AskMessageBase):
         if res is None:
             self.content = "Timed out: no action was taken"
         else:
-            self.content = f'**Selected action:** {res["label"]}'
+            self.content = f'**Selected:** {res["label"]}'
 
         self.wait_for_answer = False
 

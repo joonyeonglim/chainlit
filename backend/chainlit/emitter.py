@@ -1,6 +1,5 @@
 import asyncio
 import uuid
-from datetime import datetime
 from typing import Any, Dict, List, Literal, Optional, Union, cast
 
 from chainlit.data import get_data_layer
@@ -18,6 +17,7 @@ from chainlit.types import (
     UIMessagePayload,
 )
 from chainlit.user import PersistedUser
+from literalai.helper import utc_now
 from socketio.exceptions import TimeoutError
 
 
@@ -175,14 +175,18 @@ class ChainlitEmitter(BaseChainlitEmitter):
             else:
                 user_id = None
             try:
-                await data_layer.update_thread(
-                    thread_id=self.session.thread_id,
-                    user_id=user_id,
-                    metadata={"name": interaction},
+                tags = (
+                    [self.session.chat_profile] if self.session.chat_profile else None
                 )
+                asyncio.create_task(data_layer.update_thread(
+                    thread_id=self.session.thread_id,
+                    name=interaction,
+                    user_id=user_id,
+                    tags=tags,
+                ))
             except Exception as e:
                 logger.error(f"Error updating thread: {e}")
-            await self.session.flush_method_queue()
+            asyncio.create_task(self.session.flush_method_queue())
 
     async def init_thread(self, interaction: str):
         await self.flush_thread_queues(interaction)
@@ -196,7 +200,7 @@ class ChainlitEmitter(BaseChainlitEmitter):
 
         message = Message.from_dict(step_dict)
         # Overwrite the created_at timestamp with the current time
-        message.created_at = datetime.utcnow().isoformat()
+        message.created_at = utc_now()
 
         asyncio.create_task(message._create())
 
@@ -242,7 +246,7 @@ class ChainlitEmitter(BaseChainlitEmitter):
             ] = None
 
             if user_res:
-                interaction = None
+                interaction: Union[str, None] = None
                 if spec.type == "text":
                     message_dict_res = cast(StepDict, user_res)
                     await self.process_user_message(

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chainlit"
-version = "1.0.200"
+version = "1.0.504"
 keywords = ['LLM', 'Agents', 'gen ai', 'chat ui', 'chatbot ui', 'openai', 'copilot', 'langchain', 'conversational ai']
 description = "Build Conversational AI."
 authors = ["Chainlit"]
@@ -22,11 +22,11 @@ chainlit = 'chainlit.cli:cli'
 
 [tool.poetry.dependencies]
 python = ">=3.8.1,<4.0.0"
-httpx = ">=0.23.0,<0.25.0"
-literalai = "0.0.103"
+httpx = ">=0.23.0"
+literalai = "0.0.504"
 dataclasses_json = "^0.5.7"
-# FastAPI 0.109.0 breaks socketio (alway 404)
-fastapi = ">=0.100,<0.109.0"
+fastapi = "^0.110.1"
+starlette = "^0.37.2"
 uvicorn = "^0.25.0"
 fastapi-socketio = "^0.0.10"
 aiofiles = "^23.1.0"
@@ -43,16 +43,16 @@ watchfiles="^0.20.0"
 filetype = "^1.2.0"
 lazify = "^0.4.0"
 packaging = "^23.1"
-python-multipart = "^0.0.6"
+python-multipart = "^0.0.9"
 pyjwt = "^2.8.0"
 
 [tool.poetry.group.tests]
 optional = true
 
 [tool.poetry.group.tests.dependencies]
-openai = ">=1.1.0"
-langchain = "^0.0.350"
-llama-index = "^0.9.15"
+openai = "^1.11.1"
+langchain = "^0.1.5"
+llama-index = "^0.10.15"
 transformers = "^4.30.1"
 matplotlib = "3.7.1"
 farm-haystack = "^1.18.0"
@@ -91,6 +91,16 @@ module = [
     "google.cloud"
 ]
 ignore_missing_imports = true
+
+[tool.poetry.group.custom-data]
+optional = true
+
+[tool.poetry.group.custom-data.dependencies]
+asyncpg = "^0.29.0"
+SQLAlchemy = "^2.0.28"
+boto3 = "^1.34.73"
+azure-identity = "^1.14.1"
+azure-storage-file-datalake = "^12.14.0"
 
 [build-system]
 requires = ["poetry-core"]

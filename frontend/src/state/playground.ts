@@ -1,6 +1,6 @@
 import { atom } from 'recoil';
 
-import { IPlayground, PromptMode } from '@chainlit/react-components';
+import { IPlayground, PromptMode } from 'types/playground';
 
 export const playgroundState = atom<IPlayground | undefined>({
   key: 'Playground',
@@ -19,5 +19,5 @@ export const functionState = atom<number | undefined>({
 
 export const modeState = atom<PromptMode>({
   key: 'PlaygroundMode',
-  default: 'Template'
+  default: 'Formatted'
 });

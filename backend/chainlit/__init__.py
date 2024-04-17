@@ -19,6 +19,7 @@ if TYPE_CHECKING:
         AsyncLangchainCallbackHandlerInvoke
     )
     from chainlit.llama_index.callbacks import LlamaIndexCallbackHandler
+    from chainlit.openai import instrument_openai
 
 import chainlit.input_widget as input_widget
 from chainlit.action import Action
@@ -312,6 +313,7 @@ __getattr__ = make_module_getattr(
         "AsyncLangchainCallbackHandlerInvoke": "chainlit.langchain.callbacks",
         "LlamaIndexCallbackHandler": "chainlit.llama_index.callbacks",
         "HaystackAgentCallbackHandler": "chainlit.haystack.callbacks",
+        "instrument_openai": "chainlit.openai",
     }
 )
 
@@ -365,6 +367,7 @@ __all__ = [
     "AsyncLangchainCallbackHandlerInvoke",
     "LlamaIndexCallbackHandler",
     "HaystackAgentCallbackHandler",
+    "instrument_openai",
 ]
 
 

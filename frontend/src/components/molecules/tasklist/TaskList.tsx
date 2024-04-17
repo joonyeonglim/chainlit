@@ -1,9 +1,9 @@
 import { useFetch } from 'usehooks-ts';
+import { grey } from 'theme';
 
 import { Box, Chip, List, Theme, useTheme } from '@mui/material';
 
-import { useChatData } from '@chainlit/react-client';
-import { grey } from '@chainlit/react-components/theme';
+import { useApi, useChatData } from '@chainlit/react-client';
 
 import { Translator } from 'components/i18n';
 

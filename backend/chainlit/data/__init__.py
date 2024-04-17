@@ -1,27 +1,23 @@
 import functools
+import json
 import os
 from collections import deque
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Union, cast, Protocol, Any
 
 import aiofiles
 from chainlit.config import config
 from chainlit.context import context
 from chainlit.logger import logger
 from chainlit.session import WebsocketSession
-from chainlit.types import Feedback, Pagination, ThreadDict, ThreadFilter
-from chainlit.user import PersistedUser, User, UserDict
-from literalai import Attachment
-from literalai import Feedback as ClientFeedback
-from literalai import PageInfo, PaginatedResponse
-from literalai import Step as ClientStep
-from literalai.thread import NumberListFilter, StringFilter, StringListFilter
-from literalai.thread import ThreadFilter as ClientThreadFilter
+from chainlit.types import Feedback, Pagination, ThreadDict, ThreadFilter, PageInfo, PaginatedResponse
+from chainlit.user import PersistedUser, User
+from literalai import Attachment, PaginatedResponse as LiteralPaginatedResponse, Score as LiteralScore, Step as LiteralStep
+from literalai.filter import threads_filters as LiteralThreadsFilters
+from literalai.step import StepDict as LiteralStepDict
 
 if TYPE_CHECKING:
     from chainlit.element import Element, ElementDict
     from chainlit.step import FeedbackDict, StepDict
-
-_data_layer = None
 
 
 def queue_until_user_message():
@@ -57,6 +53,12 @@ class BaseDataLayer:
     async def create_user(self, user: "User") -> Optional["PersistedUser"]:
         pass
 
+    async def delete_feedback(
+        self,
+        feedback_id: str,
+    ) -> bool:
+        return True
+
     async def upsert_feedback(
         self,
         feedback: Feedback,
@@ -64,7 +66,7 @@ class BaseDataLayer:
         return ""
 
     @queue_until_user_message()
-    async def create_element(self, element_dict: "ElementDict"):
+    async def create_element(self, element: "Element"):
         pass
 
     async def get_element(
@@ -98,7 +100,8 @@ class BaseDataLayer:
         self, pagination: "Pagination", filters: "ThreadFilter"
     ) -> "PaginatedResponse[ThreadDict]":
         return PaginatedResponse(
-            data=[], pageInfo=PageInfo(hasNextPage=False, endCursor=None)
+            data=[],
+            pageInfo=PageInfo(hasNextPage=False, startCursor=None, endCursor=None),
         )
 
     async def get_thread(self, identifier: str, thread_id: str) -> "Optional[ThreadDict]":
@@ -107,35 +110,25 @@ class BaseDataLayer:
     async def update_thread(
         self,
         thread_id: str,
+        name: Optional[str] = None,
         user_id: Optional[str] = None,
         metadata: Optional[Dict] = None,
         tags: Optional[List[str]] = None,
     ):
         pass
 
-    async def create_user_session(
-        self,
-        id: str,
-        started_at: str,
-        anon_user_id: str,
-        user_id: Optional[str],
-    ) -> Dict:
-        return {}
-
-    async def update_user_session(
-        self, id: str, is_interactive: bool, ended_at: Optional[str]
-    ) -> Dict:
-        return {}
-
     async def delete_user_session(self, id: str) -> bool:
         return True
 
 
-class ChainlitDataLayer:
-    def __init__(self, api_key: str, server: Optional[str]):
-        from literalai import LiteralClient
+_data_layer: Optional[BaseDataLayer] = None
 
-        self.client = LiteralClient(api_key=api_key, url=server)
+
+class ChainlitDataLayer(BaseDataLayer):
+    def __init__(self, api_key: str, server: Optional[str]):
+        from literalai import AsyncLiteralClient
+
+        self.client = AsyncLiteralClient(api_key=api_key, url=server)
         logger.info("Chainlit data layer initialized")
 
     def attachment_to_element_dict(self, attachment: Attachment) -> "ElementDict":
@@ -156,41 +149,59 @@ class ChainlitDataLayer:
             "threadId": attachment.thread_id,
         }
 
-    def feedback_to_feedback_dict(
-        self, feedback: Optional[ClientFeedback]
+    def score_to_feedback_dict(
+        self, score: Optional[LiteralScore]
     ) -> "Optional[FeedbackDict]":
-        if not feedback:
+        if not score:
             return None
         return {
-            "id": feedback.id or "",
-            "forId": feedback.step_id or "",
-            "value": feedback.value or 0,  # type: ignore
-            "comment": feedback.comment,
-            "strategy": "BINARY",
+            "id": score.id or "",
+            "forId": score.step_id or "",
+            "value": cast(Literal[0, 1], score.value),
+            "comment": score.comment,
         }
 
-    def step_to_step_dict(self, step: ClientStep) -> "StepDict":
+    def step_to_step_dict(self, step: LiteralStep) -> "StepDict":
         metadata = step.metadata or {}
+        input = (step.input or {}).get("content") or (
+            json.dumps(step.input) if step.input and step.input != {} else ""
+        )
+        output = (step.output or {}).get("content") or (
+            json.dumps(step.output) if step.output and step.output != {} else ""
+        )
+
+        user_feedback = (
+            next(
+                (
+                    s
+                    for s in step.scores
+                    if s.type == "HUMAN" and s.name == "user-feedback"
+                ),
+                None,
+            )
+            if step.scores
+            else None
+        )
+
         return {
             "createdAt": step.created_at,
             "id": step.id or "",
             "threadId": step.thread_id or "",
             "parentId": step.parent_id,
-            "feedback": self.feedback_to_feedback_dict(step.feedback),
+            "feedback": self.score_to_feedback_dict(user_feedback),
             "start": step.start_time,
             "end": step.end_time,
             "type": step.type or "undefined",
             "name": step.name or "",
             "generation": step.generation.to_dict() if step.generation else None,
-            "input": step.input or "",
-            "output": step.output or "",
+            "input": input,
+            "output": output,
             "showInput": metadata.get("showInput", False),
             "disableFeedback": metadata.get("disableFeedback", False),
             "indent": metadata.get("indent"),
             "language": metadata.get("language"),
             "isError": metadata.get("isError", False),
             "waitForAnswer": metadata.get("waitForAnswer", False),
-            "feedback": self.feedback_to_feedback_dict(step.feedback),
         }
 
     async def get_user(self, identifier: str) -> Optional[PersistedUser]:
@@ -219,26 +230,37 @@ class ChainlitDataLayer:
             createdAt=_user.created_at or "",
         )
 
+    async def delete_feedback(
+        self,
+        feedback_id: str,
+    ):
+        if feedback_id:
+            await self.client.api.delete_score(
+                id=feedback_id,
+            )
+            return True
+        return False
+
     async def upsert_feedback(
         self,
         feedback: Feedback,
     ):
         if feedback.id:
-            await self.client.api.update_feedback(
+            await self.client.api.update_score(
                 id=feedback.id,
                 update_params={
                     "comment": feedback.comment,
-                    "strategy": feedback.strategy,
                     "value": feedback.value,
                 },
             )
             return feedback.id
         else:
-            created = await self.client.api.create_feedback(
+            created = await self.client.api.create_score(
                 step_id=feedback.forId,
                 value=feedback.value,
                 comment=feedback.comment,
-                strategy=feedback.strategy,
+                name="user-feedback",
+                type="HUMAN",
             )
             return created.id or ""
 
@@ -303,32 +325,36 @@ class ChainlitDataLayer:
 
     @queue_until_user_message()
     async def create_step(self, step_dict: "StepDict"):
-        metadata = {
-            "disableFeedback": step_dict.get("disableFeedback"),
-            "isError": step_dict.get("isError"),
-            "waitForAnswer": step_dict.get("waitForAnswer"),
-            "language": step_dict.get("language"),
-            "showInput": step_dict.get("showInput"),
-        }
-
-        await self.client.api.send_steps(
-            [
-                {
-                    "createdAt": step_dict.get("createdAt"),
-                    "startTime": step_dict.get("start"),
-                    "endTime": step_dict.get("end"),
-                    "generation": step_dict.get("generation"),
-                    "id": step_dict.get("id"),
-                    "parentId": step_dict.get("parentId"),
-                    "input": step_dict.get("input"),
-                    "output": step_dict.get("output"),
-                    "name": step_dict.get("name"),
-                    "threadId": step_dict.get("threadId"),
-                    "type": step_dict.get("type"),
-                    "metadata": metadata,
-                }
-            ]
+        metadata = dict(
+            step_dict.get("metadata", {}),
+            **{
+                "disableFeedback": step_dict.get("disableFeedback"),
+                "isError": step_dict.get("isError"),
+                "waitForAnswer": step_dict.get("waitForAnswer"),
+                "language": step_dict.get("language"),
+                "showInput": step_dict.get("showInput"),
+            },
         )
+
+        step: LiteralStepDict = {
+            "createdAt": step_dict.get("createdAt"),
+            "startTime": step_dict.get("start"),
+            "endTime": step_dict.get("end"),
+            "generation": step_dict.get("generation"),
+            "id": step_dict.get("id"),
+            "parentId": step_dict.get("parentId"),
+            "name": step_dict.get("name"),
+            "threadId": step_dict.get("threadId"),
+            "type": step_dict.get("type"),
+            "tags": step_dict.get("tags"),
+            "metadata": metadata,
+        }
+        if step_dict.get("input"):
+            step["input"] = {"content": step_dict.get("input")}
+        if step_dict.get("output"):
+            step["output"] = {"content": step_dict.get("output")}
+
+        await self.client.api.send_steps([step])
 
     @queue_until_user_message()
     async def update_step(self, step_dict: "StepDict"):
@@ -342,10 +368,11 @@ class ChainlitDataLayer:
         thread = await self.get_thread(thread_id)
         if not thread:
             return ""
-        user = thread.get("user")
-        if not user:
+        user_identifier = thread.get("userIdentifier")
+        if not user_identifier:
             return ""
-        return user.get("identifier") or ""
+
+        return user_identifier
 
     async def delete_thread(self, thread_id: str):
         await self.client.api.delete_thread(id=thread_id)
@@ -353,22 +380,50 @@ class ChainlitDataLayer:
     async def list_threads(
         self, pagination: "Pagination", filters: "ThreadFilter"
     ) -> "PaginatedResponse[ThreadDict]":
-        if not filters.userIdentifier:
-            raise ValueError("userIdentifier is required")
+        if not filters.userId:
+            raise ValueError("userId is required")
 
-        client_filters = ClientThreadFilter(
-            participantsIdentifier=StringListFilter(
-                operator="in", value=[filters.userIdentifier]
-            ),
-        )
+        literal_filters: LiteralThreadsFilters = [
+            {
+                "field": "participantId",
+                "operator": "eq",
+                "value": filters.userId,
+            }
+        ]
+
         if filters.search:
-            client_filters.search = StringFilter(operator="ilike", value=filters.search)
-        if filters.feedback:
-            client_filters.feedbacksValue = NumberListFilter(
-                operator="in", value=[filters.feedback]
+            literal_filters.append(
+                {
+                    "field": "stepOutput",
+                    "operator": "ilike",
+                    "value": filters.search,
+                    "path": "content",
+                }
             )
-        return await self.client.api.list_threads(
-            first=pagination.first, after=pagination.cursor, filters=client_filters
+
+        if filters.feedback is not None:
+            literal_filters.append(
+                {
+                    "field": "scoreValue",
+                    "operator": "eq",
+                    "value": filters.feedback,
+                    "path": "user-feedback",
+                }
+            )
+
+        literal_response: LiteralPaginatedResponse = await self.client.api.list_threads(
+            first=pagination.first,
+            after=pagination.cursor,
+            filters=literal_filters,
+            order_by={"column": "createdAt", "direction": "DESC"},
+        )
+        return PaginatedResponse(
+            pageInfo=PageInfo(
+                hasNextPage=literal_response.pageInfo.hasNextPage,
+                startCursor=literal_response.pageInfo.startCursor,
+                endCursor=literal_response.pageInfo.endCursor
+                ),
+            data=literal_response.data,
         )
 
     async def get_thread(self, thread_id: str) -> "Optional[ThreadDict]":
@@ -387,74 +442,44 @@ class ChainlitDataLayer:
                     step.generation = None
                 steps.append(self.step_to_step_dict(step))
 
-        user = None  # type: Optional["UserDict"]
-
-        if thread.user:
-            user = {
-                "id": thread.user.id or "",
-                "identifier": thread.user.identifier or "",
-                "metadata": thread.user.metadata,
-            }
-
         return {
             "createdAt": thread.created_at or "",
             "id": thread.id,
+            "name": thread.name or None,
             "steps": steps,
             "elements": elements,
             "metadata": thread.metadata,
-            "user": user,
+            "userId": thread.participant_id,
+            "userIdentifier": thread.participant_identifier,
             "tags": thread.tags,
         }
 
     async def update_thread(
         self,
         thread_id: str,
+        name: Optional[str] = None,
         user_id: Optional[str] = None,
         metadata: Optional[Dict] = None,
         tags: Optional[List[str]] = None,
     ):
         await self.client.api.upsert_thread(
-            thread_id=thread_id,
+            id=thread_id,
+            name=name,
             participant_id=user_id,
             metadata=metadata,
             tags=tags,
         )
 
-    async def create_user_session(
-        self,
-        id: str,
-        started_at: str,
-        anon_user_id: str,
-        user_id: Optional[str],
-    ) -> Dict:
-        existing_session = await self.client.api.get_user_session(id=id)
-        if existing_session:
-            return existing_session
-        session = await self.client.api.create_user_session(
-            id=id,
-            started_at=started_at,
-            participant_identifier=user_id,
-            anon_participant_identifier=anon_user_id,
-        )
-        return session
-
-    async def update_user_session(
-        self, id: str, is_interactive: bool, ended_at: Optional[str]
-    ) -> Dict:
-        session = await self.client.api.update_user_session(
-            id=id, is_interactive=is_interactive, ended_at=ended_at
-        )
-        return session
-
-    async def delete_user_session(self, id: str) -> bool:
-        await self.client.api.delete_user_session(id=id)
-        return True
+class BaseStorageClient(Protocol):
+    """Base class for non-text data persistence like Azure Data Lake, S3, Google Storage, etc."""
+    async def upload_file(self, object_key: str, data: Union[bytes, str], mime: str = 'application/octet-stream', overwrite: bool = True) -> Dict[str, Any]:
+        pass
 
 
-# if api_key := os.environ.get("LITERAL_API_KEY"):
-#     server = os.environ.get("LITERAL_SERVER")
-#     _data_layer = ChainlitDataLayer(api_key=api_key, server=server)
-
+if api_key := os.environ.get("LITERAL_API_KEY"):
+    # support legacy LITERAL_SERVER variable as fallback
+    server = os.environ.get("LITERAL_API_URL") or os.environ.get("LITERAL_SERVER")
+    _data_layer = ChainlitDataLayer(api_key=api_key, server=server)
 
 def get_data_layer():
     return _data_layer

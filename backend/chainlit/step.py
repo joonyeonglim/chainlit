@@ -3,18 +3,18 @@ import inspect
 import json
 import time
 import uuid
-from datetime import datetime
 from functools import wraps
 from typing import Callable, Dict, List, Optional, TypedDict, Union
 
 from chainlit.config import config
-from chainlit.context import context
+from chainlit.context import context, local_steps
 from chainlit.data import get_data_layer
 from chainlit.element import Element
 from chainlit.logger import logger
 from chainlit.telemetry import trace_event
 from chainlit.types import FeedbackDict
 from literalai import BaseGeneration
+from literalai.helper import utc_now
 from literalai.step import StepType, TrueStepType
 
 
@@ -29,6 +29,7 @@ class StepDict(TypedDict, total=False):
     waitForAnswer: Optional[bool]
     isError: Optional[bool]
     metadata: Dict
+    tags: Optional[List[str]]
     input: str
     output: str
     createdAt: Optional[str]
@@ -47,6 +48,7 @@ def step(
     name: Optional[str] = "",
     type: TrueStepType = "undefined",
     id: Optional[str] = None,
+    tags: Optional[List[str]] = None,
     disable_feedback: bool = True,
     root: bool = False,
     language: Optional[str] = None,
@@ -71,6 +73,7 @@ def step(
                     id=id,
                     disable_feedback=disable_feedback,
                     root=root,
+                    tags=tags,
                     language=language,
                     show_input=show_input,
                 ) as step:
@@ -97,6 +100,7 @@ def step(
                     id=id,
                     disable_feedback=disable_feedback,
                     root=root,
+                    tags=tags,
                     language=language,
                     show_input=show_input,
                 ) as step:
@@ -137,6 +141,7 @@ class Step:
 
     is_error: Optional[bool]
     metadata: Dict
+    tags: Optional[List[str]]
     thread_id: str
     created_at: Union[str, None]
     start: Union[str, None]
@@ -153,6 +158,8 @@ class Step:
         id: Optional[str] = None,
         parent_id: Optional[str] = None,
         elements: Optional[List[Element]] = None,
+        metadata: Optional[Dict] = None,
+        tags: Optional[List[str]] = None,
         disable_feedback: bool = True,
         root: bool = False,
         language: Optional[str] = None,
@@ -167,7 +174,8 @@ class Step:
         self.type = type
         self.id = id or str(uuid.uuid4())
         self.disable_feedback = disable_feedback
-        self.metadata = {}
+        self.metadata = metadata or {}
+        self.tags = tags
         self.is_error = False
         self.show_input = show_input
         self.parent_id = parent_id
@@ -177,7 +185,7 @@ class Step:
         self.generation = None
         self.elements = elements or []
 
-        self.created_at = datetime.utcnow().isoformat()
+        self.created_at = utc_now()
         self.start = None
         self.end = None
 
@@ -194,13 +202,13 @@ class Step:
                 if set_language:
                     self.language = "json"
             except TypeError:
-                processed_content = str(content)
+                processed_content = str(content).replace("\\n", "\n")
                 if set_language:
                     self.language = "text"
         elif isinstance(content, str):
             processed_content = content
         else:
-            processed_content = str(content)
+            processed_content = str(content).replace("\\n", "\n")
             if set_language:
                 self.language = "text"
         return processed_content
@@ -231,6 +239,7 @@ class Step:
             "disableFeedback": self.disable_feedback,
             "streaming": self.streaming,
             "metadata": self.metadata,
+            "tags": self.tags,
             "input": self.input,
             "isError": self.is_error,
             "output": self.output,
@@ -372,37 +381,58 @@ class Step:
 
     # Handle Context Manager Protocol
     async def __aenter__(self):
-        self.start = datetime.utcnow().isoformat()
+        self.start = utc_now()
+        previous_steps = local_steps.get() or []
+        parent_step = previous_steps[-1] if previous_steps else None
+
         if not self.parent_id and not self.root:
-            if current_step := context.current_step:
-                self.parent_id = current_step.id
+            if parent_step:
+                self.parent_id = parent_step.id
             elif context.session.root_message:
                 self.parent_id = context.session.root_message.id
-        context.session.active_steps.append(self)
+        context.active_steps.append(self)
+        local_steps.set(previous_steps + [self])
         await self.send()
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        self.end = datetime.utcnow().isoformat()
+        self.end = utc_now()
 
-        if self in context.session.active_steps:
-            context.session.active_steps.remove(self)
+        if self in context.active_steps:
+            context.active_steps.remove(self)
+
+        local_active_steps = local_steps.get()
+        if local_active_steps and self in local_active_steps:
+            local_active_steps.remove(self)
+            local_steps.set(local_active_steps)
+
         await self.update()
 
     def __enter__(self):
-        self.start = datetime.utcnow().isoformat()
+        self.start = utc_now()
+
+        previous_steps = local_steps.get() or []
+        parent_step = previous_steps[-1] if previous_steps else None
+
         if not self.parent_id and not self.root:
-            if current_step := context.current_step:
-                self.parent_id = current_step.id
+            if parent_step:
+                self.parent_id = parent_step.id
             elif context.session.root_message:
                 self.parent_id = context.session.root_message.id
-        context.session.active_steps.append(self)
+        context.active_steps.append(self)
+        local_steps.set(previous_steps + [self])
 
         asyncio.create_task(self.send())
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.end = datetime.utcnow().isoformat()
-        if self in context.session.active_steps:
-            context.session.active_steps.remove(self)
+        self.end = utc_now()
+        if self in context.active_steps:
+            context.active_steps.remove(self)
+
+        local_active_steps = local_steps.get()
+        if local_active_steps and self in local_active_steps:
+            local_active_steps.remove(self)
+            local_steps.set(local_active_steps)
+
         asyncio.create_task(self.update())

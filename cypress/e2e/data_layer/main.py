@@ -1,23 +1,23 @@
-from datetime import datetime
 from typing import List, Optional
 
 import chainlit.data as cl_data
 from chainlit.step import StepDict
+from literalai.helper import utc_now
 
 import chainlit as cl
 
-now = datetime.utcnow().isoformat()
+now = utc_now()
 
 create_step_counter = 0
 
-user_dict = {"id": "test", "createdAt": now, "identifier": "admin"}
 
 thread_history = [
     {
         "id": "test1",
-        "metadata": {"name": "thread 1"},
+        "name": "thread 1",
         "createdAt": now,
-        "user": user_dict,
+        "userId": "test",
+        "userIdentifier": "admin",
         "steps": [
             {
                 "id": "test1",
@@ -38,8 +38,9 @@ thread_history = [
     {
         "id": "test2",
         "createdAt": now,
-        "user": user_dict,
-        "metadata": {"name": "thread 2"},
+        "userId": "test",
+        "userIdentifier": "admin",
+        "name": "thread 2",
         "steps": [
             {
                 "id": "test3",
@@ -81,7 +82,9 @@ class TestDataLayer(cl_data.BaseDataLayer):
     ) -> cl_data.PaginatedResponse[cl_data.ThreadDict]:
         return cl_data.PaginatedResponse(
             data=[t for t in thread_history if t["id"] not in deleted_thread_ids],
-            pageInfo=cl_data.PageInfo(hasNextPage=False, endCursor=None),
+            pageInfo=cl_data.PageInfo(
+                hasNextPage=False, startCursor=None, endCursor=None
+            ),
         )
 
     async def get_thread(self, thread_id: str):
@@ -127,4 +130,4 @@ def auth_callback(username: str, password: str) -> Optional[cl.User]:
 
 @cl.on_chat_resume
 async def on_chat_resume(thread: cl_data.ThreadDict):
-    await cl.Message(f"Welcome back to {thread['metadata']['name']}").send()
+    await cl.Message(f"Welcome back to {thread['name']}").send()

@@ -32,6 +32,11 @@ export default function AppWrapper() {
       : null
   );
 
+  const { data: translations } = useApi<IProjectSettings>(
+    apiClient,
+    `/project/translations?language=${languageInUse}`
+  );
+
   if (
     isReady &&
     !isAuthenticated &&
@@ -50,8 +55,12 @@ export default function AppWrapper() {
       expandAll: !!data.ui.default_expand_messages,
       hideCot: !!data.ui.hide_cot
     }));
-    handleChangeLanguage(data.translation);
   }, [data, setProjectSettings, setAppSettings]);
+
+  useEffect(() => {
+    if (!translations) return;
+    handleChangeLanguage(translations.translation);
+  }, [translations]);
 
   if (!isReady) {
     return null;

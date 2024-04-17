@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { AuthLogin } from '@chainlit/react-components';
-
 import { Logo } from 'components/atoms/logo';
+import { Translator } from 'components/i18n';
+import { AuthLogin } from 'components/molecules/auth';
 
 import { useQuery } from 'hooks/query';
 

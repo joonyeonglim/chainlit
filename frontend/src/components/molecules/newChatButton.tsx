@@ -10,7 +10,7 @@ import { fetchThreads } from 'state/fetchThreads'; // fetchThreads를 가져옵�
 import AddIcon from '@mui/icons-material/Add';
 import { Box } from '@mui/material';
 import { useChatInteract } from '@chainlit/react-client';
-import { AccentButton } from '@chainlit/react-components';
+import { AccentButton } from 'components/atoms/buttons';
 import { Translator } from 'components/i18n';
 import NewChatDialog from './newChatDialog';
 

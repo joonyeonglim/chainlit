@@ -1,7 +1,7 @@
 import asyncio
 import json
+import time
 import uuid
-from datetime import datetime
 from typing import Any, Dict, Literal
 
 from chainlit.action import Action
@@ -42,11 +42,11 @@ async def resume_thread(session: WebsocketSession):
     if not thread:
         return
 
-    author = thread.get("user").get("identifier") if thread["user"] else None
+    author = thread.get("userIdentifier")
     user_is_author = author == session.user.identifier
 
     if user_is_author:
-        metadata = thread["metadata"] or {}
+        metadata = thread.get("metadata", {})
         user_sessions[session.id] = metadata.copy()
         if chat_profile := metadata.get("chat_profile"):
             session.chat_profile = chat_profile
@@ -99,7 +99,6 @@ async def connect(sid, environ, auth):
         )
         return False
     user = None
-    anon_user_identifier = build_anon_user_identifier(environ)
     token = None
     login_required = require_login()
     try:
@@ -150,16 +149,6 @@ async def connect(sid, environ, auth):
         thread_id=environ.get("HTTP_X_CHAINLIT_THREAD_ID"),
     )
 
-    if data_layer := get_data_layer():
-        asyncio.create_task(
-            data_layer.create_user_session(
-                id=session_id,
-                started_at=datetime.utcnow().isoformat(),
-                anon_user_id=anon_user_identifier if not user else None,
-                user_id=user.identifier if user else None,
-            )
-        )
-
     trace_event("connection_successful")
     return True
 
@@ -197,15 +186,6 @@ async def clean_session(sid):
 async def disconnect(sid, force_clear=False):
     session = WebsocketSession.get(sid)
     if session:
-        if data_layer := get_data_layer():
-            asyncio.create_task(
-                data_layer.update_user_session(
-                    id=session.id,
-                    is_interactive=session.has_first_interaction,
-                    ended_at=datetime.utcnow().isoformat(),
-                )
-            )
-
         init_ws_context(session)
 
     if config.code.on_chat_end and session:
@@ -256,6 +236,8 @@ async def process_message(session: WebsocketSession, payload: UIMessagePayload):
         message = await context.emitter.process_user_message(payload)
 
         if config.code.on_message:
+            # Sleep 1ms to make sure any children step starts after the message step start
+            time.sleep(0.001)
             await config.code.on_message(message)
     except InterruptedError:
         pass
@@ -294,6 +276,9 @@ async def call_action(sid, action):
     action = Action(**action)
 
     try:
+        if not context.session.has_first_interaction:
+            context.session.has_first_interaction = True
+            asyncio.create_task(context.emitter.init_thread(action.name))
         res = await process_action(action)
         await context.emitter.send_action_response(
             id=action.id, status=True, response=res if isinstance(res, str) else None
