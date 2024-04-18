@@ -86,11 +86,11 @@ const ChangeThreadButton = ({ threadId, onFetch }: Props) => {
             }
           }}
         >
-          <DialogTitle id="alert-dialog-title">{'Change Thread Name?'}</DialogTitle>
+          <DialogTitle id="alert-dialog-title">{'Changing Thread Name?'}</DialogTitle>
           <DialogContent>
             <DialogContentText id="alert-dialog-description">
-              <Translator path="components.organisms.threadHistory.sidebar.ChangeThreadButton.confirmMessage" />
-
+              {/*<Translator path="components.organisms.threadHistory.sidebar.ChangeThreadButton.confirmMessage" />*/}
+              <p>Please write down the title of the chat you want to change.</p>
             </DialogContentText>
           </DialogContent>
 

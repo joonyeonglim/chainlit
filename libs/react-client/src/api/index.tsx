@@ -249,6 +249,11 @@ export class ChainlitAPI extends APIBase {
     return res.json();
   }
 
+  async getRecommendedQuestions(threadName: string, threadId: string, accessToken?: string) {
+    const res = await this.patch(`/project/thread_name`, { threadName, threadId }, accessToken);
+
+    return res.json();
+  }
 
   uploadFile(
     file: File,
