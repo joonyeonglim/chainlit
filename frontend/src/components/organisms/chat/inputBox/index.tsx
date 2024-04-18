@@ -1,13 +1,13 @@
-import React, { useState } from 'react'; // useState 훅 추가
-
+import React, { useState, useEffect } from 'react'; // useState 훅 추가
 import { useAuth } from 'api/auth';
 import { memo, useCallback } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { v4 as uuidv4 } from 'uuid';
 
-import { Box } from '@mui/material';
+import { Box, Button } from '@mui/material';
 
-import { FileSpec, IStep, useChatInteract } from '@chainlit/react-client';
+import {ClientError, FileSpec, IStep, useChatInteract} from '@chainlit/react-client';
+import { useChatData } from '@chainlit/react-client';
 
 import ScrollDownButton from 'components/atoms/buttons/scrollDownButton';
 
@@ -17,7 +17,7 @@ import { inputHistoryState } from 'state/userInputHistory';
 
 import Input from './input';
 import WaterMark from './waterMark';
-import TranslateSwitch from './GoogleTranslateButton'; // TranslateSwitch 컴포넌트 임포트
+import TranslateSwitch from './GoogleTranslateButton';
 
 interface Props {
   fileSpec: FileSpec;
@@ -27,6 +27,7 @@ interface Props {
   autoScroll?: boolean;
   projectSettings?: IProjectSettings;
 }
+
 
 const InputBox = memo(
   ({
@@ -41,8 +42,30 @@ const InputBox = memo(
     // 체크 박스 상태 추가
 
     const { user } = useAuth();
+    const { chatSettingsValue, chatSettingsInputs } =
+      useChatData();
     const { sendMessage, replyMessage } = useChatInteract();
     const [isTranslateEnabled, setIsTranslateEnabled] = useState(false); // 번역 스위치 상태
+    const [recommendations, setRecommendations] = useState<string[]>([]); // Initialize without default questions
+    const [showButtons, setShowButtons] = useState(true); // State to control button visibility
+
+    const isRecommendQuestions = chatSettingsValue?.recommendQuestions ?? 'None';
+    useEffect(() => {
+      if (isRecommendQuestions === "None") {
+        setShowButtons(false);
+        setRecommendations([]); // Ensure recommendations are cleared if "None"
+      } else {
+        const lastItems = chatSettingsInputs[chatSettingsInputs.length - 1];
+        if (lastItems && lastItems.id === "recommendQuestions") {
+          const newRecommendations = lastItems.items.map((item: { value: String; }) => item.value);
+          setRecommendations(newRecommendations);
+          setShowButtons(newRecommendations.length > 0);
+        } else {
+          setShowButtons(false);
+        }
+      }
+    }, [isRecommendQuestions, chatSettingsInputs]);
+
 
     const onSubmit = useCallback(
       async (msg: string, attachments?: IAttachment[], isTranslateEnabled?: boolean) => {
@@ -101,6 +124,15 @@ const InputBox = memo(
       [user, replyMessage]
     );
 
+    // Handler for question click
+    const handleQuestionClick = (question: string) => { // Ensure parameter is typed
+      onSubmit(question, [], false);
+      setShowButtons(false); // Hide buttons after one is clicked
+
+      // Additional integration with sendMessage or replyMessage
+    };
+
+
     return (
       <Box
         display="flex"
@@ -120,7 +152,17 @@ const InputBox = memo(
           <ScrollDownButton onClick={() => setAutoScroll(true)} />
         ) : null}
         <Box>
-          {/* 번역 스위치 OFF */}
+          {/* Display Recommendations */}
+          {showButtons && ( // Conditional rendering based on showButtons state
+            <Box display="flex" justifyContent="center" mb={2}>
+              {recommendations.map((question, index) => (
+                <Button key={index} variant="outlined" onClick={() => handleQuestionClick(question)} sx={{ margin: '0 8px' }}>
+                  {question}
+                </Button>
+              ))}
+            </Box>
+          )}
+          {/*번역 스위치 OFF */}
           {/*<TranslateSwitch // 번역 스위치 추가*/}
           {/*  isTranslateEnabled={isTranslateEnabled}*/}
           {/*  setIsTranslateEnabled={setIsTranslateEnabled}*/}
