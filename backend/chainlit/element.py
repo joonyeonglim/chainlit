@@ -40,6 +40,7 @@ class ElementDict(TypedDict):
     page: Optional[int]
     forId: Optional[str]
     mime: Optional[str]
+    content: Optional[Union[List[str], str, Any]]
 
 
 @dataclass
@@ -59,7 +60,7 @@ class Element:
     # The local path of the element.
     path: Optional[str] = None
     # The byte content of the element.
-    content: Optional[Union[bytes, str]] = None
+    content: Optional[Union[bytes, str, List[str]]] = None
     # Controls how the image element should be displayed in the UI. Choices are “side” (default), “inline”, or “page”.
     display: ElementDisplay = Field(default="side")
     # Controls element size
