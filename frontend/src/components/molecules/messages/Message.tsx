@@ -60,7 +60,7 @@ const Message = memo(
 
     const isUser = message.type === 'user_message';
     const isAsk = message.waitForAnswer;
-
+    console.log("defaultCollapseContent", defaultCollapseContent)
     return (
       <Box
         sx={{
