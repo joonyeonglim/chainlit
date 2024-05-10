@@ -64,7 +64,11 @@ export default function ResumeButton({ threadId, isLoading, onThreadsFetched }: 
   const onClick = async () => {
     clear();
     setIdToResume(threadId!);
-    toast.success('Chat resumed!');
+
+    if (onThreadsFetched) {
+      await onThreadsFetched();
+    }
+
     if (!pSettings?.dataPersistence) {
       navigate('/');
     }

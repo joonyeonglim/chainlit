@@ -70,9 +70,6 @@ export default function ThreadPage() {
               gap: 2
             }}
           >
-            <Box sx={{ width: '100%', flexGrow: 1, overflow: 'auto' }}>
-              <Thread thread={data} error={error} isLoading={isLoading} />
-            </Box>
             <ResumeButton threadId={id} isLoading={isLoading} onThreadsFetched={handleFetchThreads} />
           </Box>
         )}
@@ -80,8 +77,3 @@ export default function ThreadPage() {
     </Page>
   );
 }
-
-
-
-
-//        <ResumeButton threadId={id} isLoading={isLoading} onThreadsFetched={handleFetchThreads} />
