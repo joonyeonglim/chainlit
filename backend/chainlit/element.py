@@ -38,6 +38,7 @@ class ElementDict(TypedDict):
     size: Optional[ElementSize]
     language: Optional[str]
     page: Optional[int]
+    autoPlay: Optional[bool]
     forId: Optional[str]
     mime: Optional[str]
     content: Optional[Union[List[str], str, Any]]
@@ -62,7 +63,7 @@ class Element:
     # The byte content of the element.
     content: Optional[Union[bytes, str, List[str]]] = None
     # Controls how the image element should be displayed in the UI. Choices are “side” (default), “inline”, or “page”.
-    display: ElementDisplay = Field(default="side")
+    display: ElementDisplay = Field(default="inline")
     # Controls element size
     size: Optional[ElementSize] = None
     # The ID of the message this element is associated with.
@@ -94,6 +95,7 @@ class Element:
                 "objectKey": getattr(self, "object_key", None),
                 "size": getattr(self, "size", None),
                 "page": getattr(self, "page", None),
+                "autoPlay": getattr(self, "auto_play", None),
                 "language": getattr(self, "language", None),
                 "forId": getattr(self, "for_id", None),
                 "mime": getattr(self, "mime", None),
@@ -307,6 +309,7 @@ class TaskList(Element):
 @dataclass
 class Audio(Element):
     type: ClassVar[ElementType] = "audio"
+    auto_play: bool = False
 
 
 @dataclass

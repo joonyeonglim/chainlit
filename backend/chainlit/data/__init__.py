@@ -2,16 +2,35 @@ import functools
 import json
 import os
 from collections import deque
-from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Union, cast, Protocol, Any
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Protocol,
+    Union,
+    cast,
+)
 
 import aiofiles
 from chainlit.config import config
 from chainlit.context import context
 from chainlit.logger import logger
 from chainlit.session import WebsocketSession
-from chainlit.types import Feedback, Pagination, ThreadDict, ThreadFilter, PageInfo, PaginatedResponse
+from chainlit.types import (
+    Feedback,
+    PageInfo,
+    PaginatedResponse,
+    Pagination,
+    ThreadDict,
+    ThreadFilter,
+)
 from chainlit.user import PersistedUser, User
-from literalai import Attachment, PaginatedResponse as LiteralPaginatedResponse, Score as LiteralScore, Step as LiteralStep
+from literalai import Attachment
+from literalai import Score as LiteralScore
+from literalai import Step as LiteralStep
 from literalai.filter import threads_filters as LiteralThreadsFilters
 from literalai.step import StepDict as LiteralStepDict
 
@@ -137,6 +156,7 @@ class ChainlitDataLayer(BaseDataLayer):
             "chainlitKey": None,
             "display": metadata.get("display", "side"),
             "language": metadata.get("language"),
+            "autoPlay": metadata.get("autoPlay", None),
             "page": metadata.get("page"),
             "size": metadata.get("size"),
             "type": metadata.get("type", "file"),
@@ -200,7 +220,7 @@ class ChainlitDataLayer(BaseDataLayer):
             "disableFeedback": metadata.get("disableFeedback", False),
             "indent": metadata.get("indent"),
             "language": metadata.get("language"),
-            "isError": metadata.get("isError", False),
+            "isError": bool(step.error),
             "waitForAnswer": metadata.get("waitForAnswer", False),
         }
 
@@ -226,7 +246,7 @@ class ChainlitDataLayer(BaseDataLayer):
         return PersistedUser(
             id=_user.id or "",
             identifier=_user.identifier or "",
-            metadata=_user.metadata,
+            metadata=user.metadata,
             createdAt=_user.created_at or "",
         )
 
@@ -329,7 +349,6 @@ class ChainlitDataLayer(BaseDataLayer):
             step_dict.get("metadata", {}),
             **{
                 "disableFeedback": step_dict.get("disableFeedback"),
-                "isError": step_dict.get("isError"),
                 "waitForAnswer": step_dict.get("waitForAnswer"),
                 "language": step_dict.get("language"),
                 "showInput": step_dict.get("showInput"),
@@ -353,6 +372,8 @@ class ChainlitDataLayer(BaseDataLayer):
             step["input"] = {"content": step_dict.get("input")}
         if step_dict.get("output"):
             step["output"] = {"content": step_dict.get("output")}
+        if step_dict.get("isError"):
+            step["error"] = step_dict.get("output")
 
         await self.client.api.send_steps([step])
 
@@ -411,7 +432,7 @@ class ChainlitDataLayer(BaseDataLayer):
                 }
             )
 
-        literal_response: LiteralPaginatedResponse = await self.client.api.list_threads(
+        literal_response = await self.client.api.list_threads(
             first=pagination.first,
             after=pagination.cursor,
             filters=literal_filters,
@@ -421,8 +442,8 @@ class ChainlitDataLayer(BaseDataLayer):
             pageInfo=PageInfo(
                 hasNextPage=literal_response.pageInfo.hasNextPage,
                 startCursor=literal_response.pageInfo.startCursor,
-                endCursor=literal_response.pageInfo.endCursor
-                ),
+                endCursor=literal_response.pageInfo.endCursor,
+            ),
             data=literal_response.data,
         )
 
@@ -470,9 +491,17 @@ class ChainlitDataLayer(BaseDataLayer):
             tags=tags,
         )
 
+
 class BaseStorageClient(Protocol):
     """Base class for non-text data persistence like Azure Data Lake, S3, Google Storage, etc."""
-    async def upload_file(self, object_key: str, data: Union[bytes, str], mime: str = 'application/octet-stream', overwrite: bool = True) -> Dict[str, Any]:
+
+    async def upload_file(
+        self,
+        object_key: str,
+        data: Union[bytes, str],
+        mime: str = "application/octet-stream",
+        overwrite: bool = True,
+    ) -> Dict[str, Any]:
         pass
 
 

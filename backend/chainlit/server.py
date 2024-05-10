@@ -55,7 +55,6 @@ from fastapi import (
     UploadFile,
     status,
 )
-from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
@@ -188,8 +187,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.add_middleware(GZipMiddleware)
 
 socket = SocketManager(
     app,
@@ -540,6 +537,10 @@ async def project_settings(
         chat_profiles = await config.code.set_chat_profiles(current_user)
         if chat_profiles:
             profiles = [p.to_dict() for p in chat_profiles]
+
+    if config.code.on_audio_chunk:
+        config.features.audio.enabled = True
+
     return JSONResponse(
         content={
             "ui": config.ui.to_dict(),

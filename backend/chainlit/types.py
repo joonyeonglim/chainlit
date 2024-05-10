@@ -1,5 +1,17 @@
 from enum import Enum
-from typing import TYPE_CHECKING, Dict, List, Literal, Optional, TypedDict, Union, Generic, TypeVar, Protocol, Any
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Generic,
+    List,
+    Literal,
+    Optional,
+    Protocol,
+    TypedDict,
+    TypeVar,
+    Union,
+)
 
 if TYPE_CHECKING:
     from chainlit.element import ElementDict
@@ -38,6 +50,7 @@ class ThreadFilter(BaseModel):
     userIdentifier: Optional[str] = None
     search: Optional[str] = None
 
+
 @dataclass
 class PageInfo:
     hasNextPage: bool
@@ -60,12 +73,15 @@ class PageInfo:
             hasNextPage=hasNextPage, startCursor=startCursor, endCursor=endCursor
         )
 
+
 T = TypeVar("T", covariant=True)
+
 
 class HasFromDict(Protocol[T]):
     @classmethod
     def from_dict(cls, obj_dict: Any) -> T:
         raise NotImplementedError()
+
 
 @dataclass
 class PaginatedResponse(Generic[T]):
@@ -90,6 +106,7 @@ class PaginatedResponse(Generic[T]):
         data = [the_class.from_dict(d) for d in paginated_response_dict.get("data", [])]
 
         return cls(pageInfo=pageInfo, data=data)
+
 
 @dataclass
 class FileSpec(DataClassJsonMixin):
@@ -135,6 +152,25 @@ class FileDict(TypedDict):
 
 class UIMessagePayload(TypedDict):
     message: "StepDict"
+    fileReferences: Optional[List[FileReference]]
+
+
+class AudioChunkPayload(TypedDict):
+    isStart: bool
+    mimeType: str
+    elapsedTime: float
+    data: bytes
+
+
+@dataclass
+class AudioChunk:
+    isStart: bool
+    mimeType: str
+    elapsedTime: float
+    data: bytes
+
+
+class AudioEndPayload(TypedDict):
     fileReferences: Optional[List[FileReference]]
 
 
@@ -202,6 +238,7 @@ class ChatProfile(DataClassJsonMixin):
     name: str
     markdown_description: str
     icon: Optional[str] = None
+    default: bool = False
 
 
 FeedbackStrategy = Literal["BINARY"]

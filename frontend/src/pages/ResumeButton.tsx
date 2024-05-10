@@ -63,11 +63,10 @@ export default function ResumeButton({ threadId, isLoading, onThreadsFetched }: 
 
   const onClick = async () => {
     clear();
-    setIdToResume(threadId);
-    navigate('/');
-
-    if (onThreadsFetched) {
-      await onThreadsFetched();
+    setIdToResume(threadId!);
+    toast.success('Chat resumed!');
+    if (!pSettings?.dataPersistence) {
+      navigate('/');
     }
   };
 
@@ -80,7 +79,7 @@ export default function ResumeButton({ threadId, isLoading, onThreadsFetched }: 
       sx={{
         boxSizing: 'border-box',
         width: '100%',
-        maxWidth: '60rem',
+        maxWidth: '48rem',
         m: 'auto',
         justifyContent: 'center'
       }}

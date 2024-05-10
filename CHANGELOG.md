@@ -8,6 +8,70 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing unreleased!
 
+## [1.1.0rc1] - 2024-05-06
+
+### Changed
+
+- bumped literalai package version to 0.0.600
+
+## [1.1.0rc0] - 2024-05-06
+
+### Added
+
+- `cl.on_audio_chunk` decorator to process incoming the user incoming audio stream
+- `cl.on_audio_end` decorator to react to the end of the user audio stream
+- The `cl.Audio` element now has an `auto_play` property
+- `http_referer` is now available in `cl.user_session`
+
+### Changed
+
+- The UI has been revamped, especially the navigation
+- The arrow up button has been removed from the input bar, however pressing the arrow up key still opens the last inputs menu
+- **[breaking]** the `send()` method on `cl.Message` now returns the message instead of the message id
+- **[breaking]** The `multi_modal` feature has been renamed `spontaneous_file_upload` in the config
+- Element display property now defaults to `inline` instead of `side`
+
+### Fixed
+
+- Stopping a task should now work better (using asyncio task.cancel)
+
+## [1.0.506] - 2024-04-30
+
+### Added
+
+- add support for multiline option in TextInput chat settings field - @kevinwmerritt
+
+### Changed
+
+- disable gzip middleware to prevent a compression issue on safari
+
+### Fixed
+
+- pasting from microsoft products generates text instead of an image
+- do not prevent thread history revalidation - @kevinwmerritt
+- display the label instead of the value for menu item - @kevinwmerritt
+
+### Added
+
+## [1.0.505] - 2024-04-23
+
+### Added
+
+- The user's browser language configuration is available in `cl.user_session.get("languages")`
+- Allow html in text elements - @jdb78
+- Allow for setting a ChatProfile default - @kevinwmerritt
+
+### Changed
+
+- The thread history refreshes right after a new thread is created.
+- The thread auto-tagging feature is now opt-in using `auto_tag_thread` in the config.toml file
+
+### Fixed
+
+- Fixed incorrect step ancestor in the OpenAI instrumentation
+- Enabled having a `storage_provider` set to `None` in SQLAlchemyDataLayer - @mohamedalani
+- Correctly serialize `generation` in SQLAlchemyDataLayer - @mohamedalani
+
 ## [1.0.504] - 2024-04-16
 
 ### Changed

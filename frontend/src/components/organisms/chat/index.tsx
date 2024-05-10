@@ -1,26 +1,26 @@
-import { apiClient } from 'api';
 import { useUpload } from 'hooks';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 
-import { Alert, Box } from '@mui/material';
+import { Alert, Box, Stack } from '@mui/material';
 
 import {
   threadHistoryState,
   useChatData,
-  useChatInteract
+  useChatInteract,
+  useChatMessages,
+  useChatSession
 } from '@chainlit/react-client';
-import { sideViewState } from '@chainlit/react-client';
 
 import { ErrorBoundary } from 'components/atoms/ErrorBoundary';
-import SideView from 'components/atoms/element/sideView';
 import { Translator } from 'components/i18n';
 import { useTranslation } from 'components/i18n/Translator';
-import ChatProfiles from 'components/molecules/chatProfiles';
 import { TaskList } from 'components/molecules/tasklist/TaskList';
 
+import { apiClientState } from 'state/apiClient';
 import { IAttachment, attachmentsState } from 'state/chat';
 import { projectSettingsState } from 'state/project';
 
@@ -29,21 +29,28 @@ import DropScreen from './dropScreen';
 import InputBox from './inputBox';
 
 const Chat = () => {
+  const { idToResume } = useChatSession();
+
   const projectSettings = useRecoilValue(projectSettingsState);
   const setAttachments = useSetRecoilState(attachmentsState);
   const setThreads = useSetRecoilState(threadHistoryState);
-  const sideViewElement = useRecoilValue(sideViewState);
+  const apiClient = useRecoilValue(apiClientState);
 
   const [autoScroll, setAutoScroll] = useState(true);
   const { error, disabled } = useChatData();
   const { uploadFile } = useChatInteract();
   const uploadFileRef = useRef(uploadFile);
+  const navigate = useNavigate();
 
   const fileSpec = useMemo(
     () => ({
-      max_size_mb: projectSettings?.features?.multi_modal?.max_size_mb || 500,
-      max_files: projectSettings?.features?.multi_modal?.max_files || 20,
-      accept: projectSettings?.features?.multi_modal?.accept || ['*/*']
+      max_size_mb:
+        projectSettings?.features?.spontaneous_file_upload?.max_size_mb || 500,
+      max_files:
+        projectSettings?.features?.spontaneous_file_upload?.max_files || 20,
+      accept: projectSettings?.features?.spontaneous_file_upload?.accept || [
+        '*/*'
+      ]
     }),
     [projectSettings]
   );
@@ -147,15 +154,26 @@ const Chat = () => {
     options: { noClick: true }
   });
 
+  const { threadId } = useChatMessages();
+
   useEffect(() => {
-    setThreads((prev) => ({
-      ...prev,
-      currentThreadId: undefined
-    }));
+    const currentPage = new URL(window.location.href);
+    if (
+      projectSettings?.dataPersistence &&
+      threadId &&
+      currentPage.pathname === '/'
+    ) {
+      navigate(`/thread/${threadId}`);
+    } else {
+      setThreads((prev) => ({
+        ...prev,
+        currentThreadId: threadId
+      }));
+    }
   }, []);
 
   const enableMultiModalUpload =
-    !disabled && projectSettings?.features?.multi_modal?.enabled;
+    !disabled && projectSettings?.features?.spontaneous_file_upload?.enabled;
 
   return (
     <Box
@@ -176,13 +194,13 @@ const Chat = () => {
           {upload?.isDragActive ? <DropScreen /> : null}
         </>
       ) : null}
-      <SideView>
+      <Stack width="100%">
         <Box my={1} />
-        {error && (
+        {error ? (
           <Box
             sx={{
               width: '100%',
-              maxWidth: '60rem',
+              maxWidth: '48rem',
               mx: 'auto',
               my: 2
             }}
@@ -191,10 +209,23 @@ const Chat = () => {
               <Translator path="components.organisms.chat.index.couldNotReachServer" />
             </Alert>
           </Box>
-        )}
+        ) : null}
+        {idToResume ? (
+          <Box
+            sx={{
+              width: '100%',
+              maxWidth: '48rem',
+              mx: 'auto',
+              my: 2
+            }}
+          >
+            <Alert sx={{ mx: 2 }} severity="info">
+              <Translator path="components.organisms.chat.index.continuingChat" />
+            </Alert>
+          </Box>
+        ) : null}
         <TaskList isMobile={true} />
         <ErrorBoundary>
-          <ChatProfiles />
           <Messages
             autoScroll={autoScroll}
             projectSettings={projectSettings}
@@ -209,8 +240,7 @@ const Chat = () => {
             projectSettings={projectSettings}
           />
         </ErrorBoundary>
-      </SideView>
-      {sideViewElement ? null : <TaskList isMobile={false} />}
+      </Stack>
     </Box>
   );
 };
