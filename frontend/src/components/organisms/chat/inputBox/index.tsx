@@ -45,7 +45,6 @@ const InputBox = memo(
     const { chatSettingsValue, chatSettingsInputs } =
       useChatData();
     const { sendMessage, replyMessage } = useChatInteract();
-    const [isTranslateEnabled, setIsTranslateEnabled] = useState(false); // 번역 스위치 상태
     const [recommendations, setRecommendations] = useState<string[]>([]); // Initialize without default questions
     const [showButtons, setShowButtons] = useState(true); // State to control button visibility
 
@@ -68,7 +67,7 @@ const InputBox = memo(
 
 
     const onSubmit = useCallback(
-      async (msg: string, attachments?: IAttachment[], isTranslateEnabled?: boolean) => {
+      async (msg: string, attachments?: IAttachment[]) => {
         const message: IStep = {
           threadId: '',
           id: uuidv4(),
@@ -76,7 +75,6 @@ const InputBox = memo(
           type: 'user_message',
           output: msg,
           createdAt: new Date().toISOString(),
-          translate: isTranslateEnabled
         };
 
         setInputHistory((old) => {
@@ -107,7 +105,7 @@ const InputBox = memo(
     );
 
     const onReply = useCallback(
-      async (msg: string, isTranslateEnabled?: boolean) => {
+      async (msg: string) => {
         const message: IStep = {
           threadId: '',
           id: uuidv4(),
@@ -115,7 +113,6 @@ const InputBox = memo(
           type: 'user_message',
           output: msg,
           createdAt: new Date().toISOString(),
-          translate: isTranslateEnabled
         };
 
         replyMessage(message);
@@ -126,7 +123,7 @@ const InputBox = memo(
 
     // Handler for question click
     const handleQuestionClick = (question: string) => { // Ensure parameter is typed
-      onSubmit(question, [], false);
+      onSubmit(question, []);
       setShowButtons(false); // Hide buttons after one is clicked
 
       // Additional integration with sendMessage or replyMessage
@@ -143,7 +140,7 @@ const InputBox = memo(
         sx={{
           boxSizing: 'border-box',
           width: '100%',
-          maxWidth: '60rem',
+          maxWidth: '48rem',
           m: 'auto',
           justifyContent: 'center'
         }}
@@ -162,18 +159,12 @@ const InputBox = memo(
               ))}
             </Box>
           )}
-          {/*번역 스위치 OFF */}
-          {/*<TranslateSwitch // 번역 스위치 추가*/}
-          {/*  isTranslateEnabled={isTranslateEnabled}*/}
-          {/*  setIsTranslateEnabled={setIsTranslateEnabled}*/}
-          {/*/>*/}
           <Input
             fileSpec={fileSpec}
             onFileUpload={onFileUpload}
             onFileUploadError={onFileUploadError}
             onSubmit={onSubmit}
             onReply={onReply}
-            isTranslateEnabled={isTranslateEnabled}
           />
           {/* {tokenCount > 0 && ( */}
           {/* <Stack flexDirection="row" alignItems="center">

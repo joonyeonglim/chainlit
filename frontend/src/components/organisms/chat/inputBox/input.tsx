@@ -13,21 +13,19 @@ import { Attachments } from 'components/molecules/attachments';
 import HistoryButton from 'components/organisms/chat/history';
 
 import { IAttachment, attachmentsState } from 'state/chat';
-import { chatSettingsOpenState, projectSettingsState } from 'state/project';
+import { chatSettingsOpenState } from 'state/project';
 import { inputHistoryState } from 'state/userInputHistory';
 
+import MicButton from './MicButton';
 import { SubmitButton } from './SubmitButton';
 import UploadButton from './UploadButton';
-import SpeechButton from './speechButton';
-
 
 interface Props {
   fileSpec: FileSpec;
   onFileUpload: (payload: File[]) => void;
   onFileUploadError: (error: string) => void;
-  onSubmit: (message: string, attachments?: IAttachment[], isTranslateEnabled?: boolean) => void;
-  onReply: (message: string, isTranslateEnabled?: boolean) => void;
-  isTranslateEnabled?: boolean
+  onSubmit: (message: string, attachments?: IAttachment[]) => void;
+  onReply: (message: string) => void;
 }
 
 function getLineCount(el: HTMLDivElement) {
@@ -40,9 +38,8 @@ function getLineCount(el: HTMLDivElement) {
 }
 
 const Input = memo(
-  ({ fileSpec, onFileUpload, onFileUploadError, onSubmit, onReply, isTranslateEnabled }: Props) => {
+  ({ fileSpec, onFileUpload, onFileUploadError, onSubmit, onReply }: Props) => {
     const [attachments, setAttachments] = useRecoilState(attachmentsState);
-    const [pSettings] = useRecoilState(projectSettingsState);
     const setInputHistory = useSetRecoilState(inputHistoryState);
     const setChatSettingsOpen = useSetRecoilState(chatSettingsOpenState);
 
@@ -59,14 +56,21 @@ const Input = memo(
     const [value, setValue] = useState('');
     const [isComposing, setIsComposing] = useState(false);
 
-    const showTextToSpeech = pSettings?.features.speech_to_text?.enabled;
-
     const { t } = useTranslation();
 
     useEffect(() => {
       const pasteEvent = (event: ClipboardEvent) => {
         if (event.clipboardData && event.clipboardData.items) {
           const items = Array.from(event.clipboardData.items);
+
+          // Attempt to handle text data first
+          const textData = event.clipboardData.getData('text/plain');
+          if (textData) {
+            // Skip file handling if text data is present
+            return;
+          }
+
+          // If no text data, check for files (e.g., images)
           items.forEach((item) => {
             if (item.kind === 'file') {
               const file = item.getAsFile();
@@ -102,9 +106,9 @@ const Input = memo(
         return;
       }
       if (askUser) {
-        onReply(value, isTranslateEnabled);
+        onReply(value);
       } else {
-        onSubmit(value, attachments, isTranslateEnabled);
+        onSubmit(value, attachments);
       }
       setAttachments([]);
       setValue('');
@@ -144,6 +148,12 @@ const Input = memo(
     const startAdornment = (
       <>
         <HistoryButton disabled={disabled} onClick={onHistoryClick} />
+        <UploadButton
+          disabled={disabled}
+          fileSpec={fileSpec}
+          onFileUploadError={onFileUploadError}
+          onFileUpload={onFileUpload}
+        />
         {chatSettingsInputs.length > 0 && (
           <IconButton
             id="chat-settings-open-modal"
@@ -154,19 +164,7 @@ const Input = memo(
             <TuneIcon />
           </IconButton>
         )}
-        {showTextToSpeech ? (
-          <SpeechButton
-            onSpeech={(transcript) => setValue((text) => text + transcript)}
-            language={pSettings.features?.speech_to_text?.language}
-            disabled={disabled}
-          />
-        ) : null}
-        <UploadButton
-          disabled={disabled}
-          fileSpec={fileSpec}
-          onFileUploadError={onFileUploadError}
-          onFileUpload={onFileUpload}
-        />
+        <MicButton disabled={disabled} />
       </>
     );
 
@@ -189,7 +187,6 @@ const Input = memo(
           }
         }}
       >
-
         {attachments.length > 0 ? (
           <Box
             sx={{
@@ -229,7 +226,9 @@ const Input = memo(
                 {startAdornment}
               </InputAdornment>
             ),
-            endAdornment: <SubmitButton onSubmit={submit} disabled={disabled} />
+            endAdornment: (
+              <SubmitButton onSubmit={submit} disabled={disabled || !value} />
+            )
           }}
         />
       </Stack>

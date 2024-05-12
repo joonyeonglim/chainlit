@@ -1,4 +1,3 @@
-import { apiClient } from 'api';
 import { useCallback } from 'react';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { toast } from 'sonner';
@@ -16,8 +15,7 @@ import {
   useChatSession
 } from '@chainlit/react-client';
 
-import { useTranslation } from 'react-i18next';
-
+import { useTranslation } from 'components/i18n/Translator';
 
 import { apiClientState } from 'state/apiClient';
 import { IProjectSettings } from 'state/project';
@@ -32,16 +30,17 @@ interface MessagesProps {
 }
 
 const Messages = ({
-  autoScroll,
-  projectSettings,
-  setAutoScroll
-}: MessagesProps): JSX.Element => {
+                    autoScroll,
+                    projectSettings,
+                    setAutoScroll
+                  }: MessagesProps): JSX.Element => {
   const { elements, askUser, avatars, loading, actions } = useChatData();
   const { messages } = useChatMessages();
   const { callAction } = useChatInteract();
   const { idToResume } = useChatSession();
   const accessToken = useRecoilValue(accessTokenState);
   const setMessages = useSetRecoilState(messagesState);
+  const apiClient = useRecoilValue(apiClientState);
 
   const { t } = useTranslation();
 
@@ -93,7 +92,9 @@ const Messages = ({
               })
             );
             onSuccess();
-            return t('components.organisms.chat.Messages.index.feedbackSuccess');
+            return t(
+              'components.organisms.chat.Messages.index.feedbackUpdated'
+            );
           },
           error: (err) => {
             return <span>{err.message}</span>;
@@ -135,9 +136,10 @@ const Messages = ({
   );
 
   return !idToResume &&
-    !messages.length &&
-    projectSettings?.ui.show_readme_as_default ? (
+  !messages.length &&
+  projectSettings?.ui.show_readme_as_default ? (
     <WelcomeScreen
+      variant="app"
       markdown={projectSettings?.markdown}
       allowHtml={projectSettings?.features?.unsafe_allow_html}
       latex={projectSettings?.features?.latex}

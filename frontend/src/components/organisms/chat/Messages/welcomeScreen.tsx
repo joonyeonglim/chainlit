@@ -6,12 +6,15 @@ import { Markdown } from 'components/molecules/Markdown';
 
 const WelcomeScreen = memo(
   ({
-    markdown,
-    allowHtml
-  }: {
+     markdown,
+     allowHtml,
+     latex,
+     variant
+   }: {
     markdown?: string;
     allowHtml?: boolean;
     latex?: boolean;
+    variant: 'app' | 'copilot';
   }) => {
     if (!markdown) return <Box flexGrow={1} />;
 
@@ -20,21 +23,22 @@ const WelcomeScreen = memo(
         <Box
           id="welcome-screen"
           sx={{
-            p: 2,
+            px: variant === 'app' ? 2.5 : 2,
             boxSizing: 'border-box',
-            maxWidth: '60rem',
+            maxWidth: '48rem',
             width: '100%',
             mx: 'auto',
             color: 'text.primary',
-            lineHeight: '25px',
-            fontSize: '1rem',
+            fontSize: variant === 'app' ? '1rem' : '0.9rem',
             fontFamily:
               '-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji',
             display: 'flex',
             flexDirection: 'column'
           }}
         >
-          <Markdown allowHtml={allowHtml}>{markdown}</Markdown>
+          <Markdown allowHtml={allowHtml} latex={latex}>
+            {markdown}
+          </Markdown>
         </Box>
       </Box>
     );

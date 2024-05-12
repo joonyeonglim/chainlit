@@ -33,7 +33,6 @@ export interface IStep {
   streaming?: boolean;
   generation?: IGeneration;
   steps?: IStep[];
-  translate?: boolean;
   //legacy
   indent?: number;
 }

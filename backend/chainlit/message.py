@@ -168,7 +168,7 @@ class MessageBase(ABC):
         step_dict = await self._create()
         await context.emitter.send_step(step_dict)
 
-        return self.id
+        return self
 
     async def stream_token(self, token: str, is_sequence=False):
         """
@@ -255,7 +255,7 @@ class Message(MessageBase):
 
         super().__post_init__()
 
-    async def send(self) -> str:
+    async def send(self):
         """
         Send the message to the UI and persist it in the cloud if a project ID is configured.
         Return the ID of the message.
@@ -272,7 +272,7 @@ class Message(MessageBase):
         # Run all tasks concurrently
         await asyncio.gather(*tasks)
 
-        return self.id
+        return self
 
     async def update(self):
         """

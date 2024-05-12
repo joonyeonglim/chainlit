@@ -15,10 +15,9 @@ interface CollapseProps {
 
 const Collapse = ({
   children,
-  defaultExpandAll = false
+  defaultExpandAll = true
 }: CollapseProps): JSX.Element => {
   const [expandAll, toggleExpandAll] = useToggle(defaultExpandAll);
-
   const content = (
     <Box height={expandAll ? 'auto' : 100} position="relative">
       <Box

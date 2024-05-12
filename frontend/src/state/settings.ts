@@ -13,7 +13,7 @@ const theme = preferredTheme ? preferredTheme : defaultTheme;
 export const defaultSettingsState = {
   open: false,
   defaultCollapseContent: true,
-  expandAll: false,
+  expandAll: true,
   hideCot: false,
   isChatHistoryOpen: true,
   language: 'en-US',

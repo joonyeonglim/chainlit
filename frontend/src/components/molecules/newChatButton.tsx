@@ -1,20 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilState, useRecoilValue } from 'recoil';
-
-// 필요한 상태와 훅을 가져옵니다.
 import { accessTokenState, threadHistoryState } from '@chainlit/react-client';
 import { threadsFiltersState } from "state/threads";
 import { fetchThreads } from 'state/fetchThreads'; // fetchThreads를 가져옵니다.
-
-import AddIcon from '@mui/icons-material/Add';
-import { Box } from '@mui/material';
-import { useChatInteract } from '@chainlit/react-client';
-import { AccentButton } from 'components/atoms/buttons';
 import { Translator } from 'components/i18n';
+import SquarePenIcon from 'assets/squarePen';
+
+import { useChatInteract } from '@chainlit/react-client';
+import { Box, IconButton, IconButtonProps, Tooltip } from '@mui/material';
 import NewChatDialog from './newChatDialog';
 
-export default function NewChatButton() {
+export default function NewChatButton(props: IconButtonProps) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { clear } = useChatInteract();
@@ -42,14 +39,13 @@ export default function NewChatButton() {
 
   return (
     <Box>
-      <AccentButton
-        id="new-chat-button"
-        variant="outlined"
-        onClick={handleClickOpen}
-        startIcon={<AddIcon />}
+      <Tooltip
+        title={<Translator path="components.molecules.newChatButton.newChat" />}
       >
-        <Translator path="components.molecules.newChatButton.newChat" />
-      </AccentButton>
+        <IconButton id="new-chat-button" onClick={handleClickOpen} {...props}>
+          <SquarePenIcon sx={{ height: 20, width: 20 }} />
+        </IconButton>
+      </Tooltip>
       <NewChatDialog
         open={open}
         handleClose={handleClose}

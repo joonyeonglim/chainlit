@@ -11,9 +11,11 @@ import {
   actionState,
   askUserState,
   avatarState,
+  callFnState,
   chatProfileState,
   chatSettingsInputsState,
   chatSettingsValueState,
+  currentThreadIdState,
   elementState,
   firstUserInteraction,
   loadingState,
@@ -53,6 +55,8 @@ const useChatSession = () => {
   const setLoading = useSetRecoilState(loadingState);
   const setMessages = useSetRecoilState(messagesState);
   const setAskUser = useSetRecoilState(askUserState);
+  const setCallFn = useSetRecoilState(callFnState);
+
   const setElements = useSetRecoilState(elementState);
   const setAvatars = useSetRecoilState(avatarState);
   const setTasklists = useSetRecoilState(tasklistState);
@@ -61,13 +65,14 @@ const useChatSession = () => {
   const setTokenCount = useSetRecoilState(tokenCountState);
   const [chatProfile, setChatProfile] = useRecoilState(chatProfileState);
   const idToResume = useRecoilValue(threadIdToResumeState);
+  const setCurrentThreadId = useSetRecoilState(currentThreadIdState);
 
   const _connect = useCallback(
     ({
-      client,
-      userEnv,
-      accessToken
-    }: {
+       client,
+       userEnv,
+       accessToken
+     }: {
       client: ChainlitAPI;
       userEnv: Record<string, string>;
       accessToken?: string;
@@ -80,6 +85,7 @@ const useChatSession = () => {
         path: `${pathname}${socketPath}`,
         extraHeaders: {
           Authorization: accessToken || '',
+          'X-Chainlit-Client-Type': client.type,
           'X-Chainlit-Session-Id': sessionId,
           'X-Chainlit-Thread-Id': idToResume || '',
           'user-env': JSON.stringify(userEnv),
@@ -143,9 +149,13 @@ const useChatSession = () => {
         setMessages((oldMessages) => addMessage(oldMessages, message));
       });
 
-      socket.on('first_interaction', (interaction: string) => {
-        setFirstUserInteraction(interaction);
-      });
+      socket.on(
+        'first_interaction',
+        (event: { interaction: string; thread_id: string }) => {
+          setFirstUserInteraction(event.interaction);
+          setCurrentThreadId(event.thread_id);
+        }
+      );
 
       socket.on('update_message', (message: IStep) => {
         setMessages((oldMessages) =>
@@ -183,6 +193,27 @@ const useChatSession = () => {
 
       socket.on('clear_ask', () => {
         setAskUser(undefined);
+      });
+
+      socket.on('call_fn', ({ name, args }, callback) => {
+        const event = new CustomEvent('chainlit-call-fn', {
+          detail: {
+            name,
+            args,
+            callback
+          }
+        });
+        window.dispatchEvent(event);
+
+        setCallFn({ name, args, callback });
+      });
+
+      socket.on('clear_call_fn', () => {
+        setCallFn(undefined);
+      });
+
+      socket.on('call_fn_timeout', () => {
+        setCallFn(undefined);
       });
 
       socket.on('chat_settings', (inputs: any) => {
