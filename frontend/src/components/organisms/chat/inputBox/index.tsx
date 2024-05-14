@@ -46,7 +46,7 @@ const InputBox = memo(
       useChatData();
     const { sendMessage, replyMessage } = useChatInteract();
     const [recommendations, setRecommendations] = useState<string[]>([]); // Initialize without default questions
-    const [showButtons, setShowButtons] = useState(true); // State to control button visibility
+    const [showButtons, setShowButtons] = useState(false); // State to control button visibility
 
     const isRecommendQuestions = chatSettingsValue?.recommendQuestions ?? 'None';
     useEffect(() => {
@@ -125,7 +125,7 @@ const InputBox = memo(
     const handleQuestionClick = (question: string) => { // Ensure parameter is typed
       onSubmit(question, []);
       setShowButtons(false); // Hide buttons after one is clicked
-
+      setRecommendations([]);
       // Additional integration with sendMessage or replyMessage
     };
 
