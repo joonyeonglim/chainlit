@@ -1,7 +1,7 @@
 import { useUpload } from 'hooks';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { useRecoilValue, useSetRecoilState, atom } from 'recoil';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -27,6 +27,8 @@ import { projectSettingsState } from 'state/project';
 import Messages from './Messages';
 import DropScreen from './dropScreen';
 import InputBox from './inputBox';
+import RecommendQuestions from './inputBox/Recommends';
+import { chatSettingsState } from 'state/chatSettings'; // 상태 관리를 위한 새로운 Recoil 상태
 
 const Chat = () => {
   const { idToResume } = useChatSession();
@@ -35,6 +37,7 @@ const Chat = () => {
   const setAttachments = useSetRecoilState(attachmentsState);
   const setThreads = useSetRecoilState(threadHistoryState);
   const apiClient = useRecoilValue(apiClientState);
+  const setChatSettings = useSetRecoilState(chatSettingsState); // 새로운 상태 업데이트 함수를 사용
 
   const [autoScroll, setAutoScroll] = useState(true);
   const { error, disabled } = useChatData();
@@ -172,6 +175,11 @@ const Chat = () => {
     }
   }, []);
 
+  // 페이지 로드 시 상태 초기화
+  useEffect(() => {
+    setChatSettings({ recommendationsClicked: false });
+  }, [setChatSettings]);
+
   const enableMultiModalUpload =
     !disabled && projectSettings?.features?.spontaneous_file_upload?.enabled;
 
@@ -231,6 +239,7 @@ const Chat = () => {
             projectSettings={projectSettings}
             setAutoScroll={setAutoScroll}
           />
+          <RecommendQuestions />
           <InputBox
             fileSpec={fileSpec}
             onFileUpload={onFileUpload}
