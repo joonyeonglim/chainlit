@@ -16,21 +16,26 @@ const RecommendQuestions = () => {
   const { sendMessage } = useChatInteract();
   const { chatSettingsValue, chatSettingsInputs } = useChatData();
   const [recommendations, setRecommendations] = useState<string[]>([]);
-  const [showButtons, setShowButtons] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
     const isRecommendQuestions = chatSettingsValue?.recommendQuestions ?? 'None';
-    if (isRecommendQuestions !== 'None' && !chatSettings.recommendationsClicked) {
+    if (isRecommendQuestions !== 'None') {
       const newRecommendations = chatSettingsInputs.length > 0 && chatSettingsInputs[chatSettingsInputs.length - 1].id === "recommendQuestions"
         ? chatSettingsInputs[chatSettingsInputs.length - 1].items.map((item: { value: any; }) => item.value)
         : [];
+
       setRecommendations(newRecommendations);
-      setShowButtons(true);
+      setChatSettings((old) => ({ ...old, recommendations: newRecommendations, showButtons: true })); // 상태 업데이트
     } else {
-      setShowButtons(false);
+      setChatSettings((old) => ({ ...old, showButtons: false })); // 상태 업데이트
     }
-  }, [chatSettingsInputs, chatSettingsValue?.recommendQuestions, chatSettings.recommendationsClicked]);
+  }, [chatSettingsInputs, chatSettingsValue?.recommendQuestions, setChatSettings]);
+
+  useEffect(() => {
+    const { recommendations, showButtons } = chatSettings;
+    setRecommendations(recommendations);
+  }, [chatSettings]);
 
   const onSubmit = useCallback(
     async (msg: string, attachments?: IAttachment[]) => {
@@ -70,10 +75,8 @@ const RecommendQuestions = () => {
   );
 
   const handleQuestionClick = (question: string) => {
-    setShowButtons(false);    // 버튼 숨기기
-    setRecommendations([]);
+    setChatSettings((old) => ({ ...old, showButtons: false, recommendations: [] })); // 상태 업데이트
     onSubmit(question, []);   // 질문 전송
-    setChatSettings((old) => ({ ...old, recommendationsClicked: true })); // 새로운 상태 업데이트
   };
 
   return (
@@ -91,7 +94,7 @@ const RecommendQuestions = () => {
         justifyContent: 'center'
       }}
     >
-      {showButtons && (
+      {chatSettings.showButtons && (
         <Box display="flex" justifyContent="center" mb={2}>
           {recommendations.map((question, index) => (
             <Button key={index} variant="outlined" onClick={() => handleQuestionClick(question)} sx={{ margin: '0 8px' }}>

@@ -177,7 +177,7 @@ const Chat = () => {
 
   // 페이지 로드 시 상태 초기화
   useEffect(() => {
-    setChatSettings({ recommendationsClicked: false });
+    setChatSettings((old) => ({ ...old, showButtons: false })); // 상태 업데이트
   }, [setChatSettings]);
 
   const enableMultiModalUpload =
