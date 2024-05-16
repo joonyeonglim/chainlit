@@ -59,7 +59,6 @@ const Message = memo(
     }
 
     const isAsk = message.waitForAnswer;
-    console.log("defaultCollapseContent", defaultCollapseContent)
     return (
       <Box
         sx={{

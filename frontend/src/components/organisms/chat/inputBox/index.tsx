@@ -17,7 +17,6 @@ import { inputHistoryState } from 'state/userInputHistory';
 
 import Input from './input';
 import WaterMark from './waterMark';
-import TranslateSwitch from './GoogleTranslateButton';
 
 interface Props {
   fileSpec: FileSpec;
@@ -46,24 +45,33 @@ const InputBox = memo(
       useChatData();
     const { sendMessage, replyMessage } = useChatInteract();
     const [recommendations, setRecommendations] = useState<string[]>([]); // Initialize without default questions
-    const [showButtons, setShowButtons] = useState(true); // State to control button visibility
+    const [showButtons, setShowButtons] = useState(false); // State to control button visibility
+    const [cachedRecommendations, setCachedRecommendations] = useState<string[]>([]);
 
     const isRecommendQuestions = chatSettingsValue?.recommendQuestions ?? 'None';
     useEffect(() => {
-      if (isRecommendQuestions === "None") {
-        setShowButtons(false);
-        setRecommendations([]); // Ensure recommendations are cleared if "None"
-      } else {
+      if (isRecommendQuestions !== "None") {
         const lastItems = chatSettingsInputs[chatSettingsInputs.length - 1];
         if (lastItems && lastItems.id === "recommendQuestions") {
           const newRecommendations = lastItems.items.map((item: { value: String; }) => item.value);
-          setRecommendations(newRecommendations);
-          setShowButtons(newRecommendations.length > 0);
-        } else {
-          setShowButtons(false);
+
+          // Compare new recommendations with cached ones only if there is a change in chat settings
+          if (!arraysEqual(newRecommendations, cachedRecommendations)) {
+            setRecommendations(newRecommendations);
+            setShowButtons(true); // Show only if they are different
+            setCachedRecommendations(newRecommendations); // Update cache
+          } else if (cachedRecommendations.length === 0) {
+            // If cached recommendations are empty, set initially
+            setRecommendations(newRecommendations);
+            setShowButtons(true);
+            setCachedRecommendations(newRecommendations);
+          }
         }
+      } else {
+        setShowButtons(false);
+        setRecommendations([]);
       }
-    }, [isRecommendQuestions, chatSettingsInputs]);
+    }, [isRecommendQuestions, chatSettingsInputs]); // Remove cachedRecommendations from dependencies to avoid unnecessary checks
 
 
     const onSubmit = useCallback(
@@ -104,6 +112,14 @@ const InputBox = memo(
       [user, projectSettings, sendMessage]
     );
 
+    function arraysEqual(a: string | any[], b: string | any[]) {
+      if (a.length !== b.length) return false;
+      for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) return false;
+      }
+      return true;
+    }
+
     const onReply = useCallback(
       async (msg: string) => {
         const message: IStep = {
@@ -122,11 +138,10 @@ const InputBox = memo(
     );
 
     // Handler for question click
-    const handleQuestionClick = (question: string) => { // Ensure parameter is typed
+    const handleQuestionClick = (question: string) => {
       onSubmit(question, []);
       setShowButtons(false); // Hide buttons after one is clicked
-
-      // Additional integration with sendMessage or replyMessage
+      setRecommendations([]); // Clear recommendations to prevent reappearing
     };
 
 
