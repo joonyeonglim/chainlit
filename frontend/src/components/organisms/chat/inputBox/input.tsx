@@ -15,6 +15,7 @@ import HistoryButton from 'components/organisms/chat/history';
 import { IAttachment, attachmentsState } from 'state/chat';
 import { chatSettingsOpenState } from 'state/project';
 import { inputHistoryState } from 'state/userInputHistory';
+import { chatSettingsState } from 'state/chatSettings'; // 상태 관리를 위한 새로운 Recoil 상태
 
 import MicButton from './MicButton';
 import { SubmitButton } from './SubmitButton';
@@ -42,6 +43,7 @@ const Input = memo(
     const [attachments, setAttachments] = useRecoilState(attachmentsState);
     const setInputHistory = useSetRecoilState(inputHistoryState);
     const setChatSettingsOpen = useSetRecoilState(chatSettingsOpenState);
+    const setChatSettings = useSetRecoilState(chatSettingsState); // 상태 업데이트 함수 추가
 
     const ref = useRef<HTMLDivElement>(null);
     const {
@@ -110,6 +112,7 @@ const Input = memo(
       } else {
         onSubmit(value, attachments);
       }
+      setChatSettings((old) => ({ ...old, showButtons: false, recommendations: [] })); // 상태 업데이트
       setAttachments([]);
       setValue('');
     }, [

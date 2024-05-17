@@ -14,7 +14,7 @@ export const defaultSettingsState = {
   open: false,
   defaultCollapseContent: true,
   expandAll: true,
-  hideCot: false,
+  hideCot: true,
   isChatHistoryOpen: true,
   language: 'en-US',
   theme
