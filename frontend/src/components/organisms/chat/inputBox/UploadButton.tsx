@@ -1,7 +1,6 @@
 import { useUpload } from 'hooks';
 import { useRecoilValue } from 'recoil';
 
-
 import { IconButton, Theme, Tooltip, useMediaQuery } from '@mui/material';
 
 import { FileSpec } from '@chainlit/react-client';
@@ -20,11 +19,11 @@ type Props = {
 };
 
 const UploadButton = ({
-  disabled,
-  fileSpec,
-  onFileUpload,
-  onFileUploadError
-}: Props) => {
+                        disabled,
+                        fileSpec,
+                        onFileUpload,
+                        onFileUploadError
+                      }: Props) => {
   const pSettings = useRecoilValue(projectSettingsState);
 
   const upload = useUpload({
@@ -34,6 +33,9 @@ const UploadButton = ({
     options: { noDrag: true }
   });
 
+  const size = useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'))
+    ? 'small'
+    : 'medium';
 
   if (!upload || !pSettings?.features?.spontaneous_file_upload?.enabled)
     return null;
@@ -51,6 +53,7 @@ const UploadButton = ({
           id={disabled ? 'upload-button-loading' : 'upload-button'}
           disabled={disabled}
           color="inherit"
+          size={size}
           {...getRootProps({ className: 'dropzone' })}
         >
           <AttachmentIcon fontSize={size} />
