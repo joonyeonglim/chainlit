@@ -1,4 +1,5 @@
 from enum import Enum
+from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -47,7 +48,6 @@ class Pagination(BaseModel):
 class ThreadFilter(BaseModel):
     feedback: Optional[Literal[0, 1]] = None
     userId: Optional[str] = None
-    userIdentifier: Optional[str] = None
     search: Optional[str] = None
 
 
@@ -145,7 +145,7 @@ class FileReference(TypedDict):
 class FileDict(TypedDict):
     id: str
     name: str
-    path: str
+    path: Path
     size: int
     type: str
 
@@ -254,6 +254,7 @@ class FeedbackDict(TypedDict):
 @dataclass
 class Feedback:
     forId: str
+    threadId: Optional[str]
     value: Literal[0, 1]
     id: Optional[str] = None
     comment: Optional[str] = None

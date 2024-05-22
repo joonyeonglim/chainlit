@@ -5,6 +5,7 @@ from io import BytesIO
 from typing import Any, ClassVar, List, Literal, Optional, TypedDict, TypeVar, Union
 
 import filetype
+import mimetypes
 from chainlit.context import context
 from chainlit.data import get_data_layer
 from chainlit.logger import logger
@@ -166,14 +167,16 @@ class Element:
                 if self.type in mime_types
                 else filetype.guess_mime(self.path or self.content)
             )
-
+            if not self.mime and self.url:
+                self.mime = mimetypes.guess_type(self.url)[0]
+            
         await self._create()
 
         if not self.url and not self.chainlit_key:
             raise ValueError("Must provide url or chainlit key to send element")
 
         trace_event(f"send {self.__class__.__name__}")
-        await context.emitter.emit("element", self.to_dict())
+        await context.emitter.send_element(self.to_dict())
 
 
 ElementBased = TypeVar("ElementBased", bound=Element)

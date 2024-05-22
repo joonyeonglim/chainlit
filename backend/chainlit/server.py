@@ -120,16 +120,27 @@ async def lifespan(app: FastAPI):
 
         watch_task = asyncio.create_task(watch_files_for_changes())
 
+    discord_task = None
+
+    if discord_bot_token := os.environ.get("DISCORD_BOT_TOKEN"):
+        from chainlit.discord.app import client
+
+        discord_task = asyncio.create_task(client.start(discord_bot_token))
+
     try:
         yield
     finally:
-        if watch_task:
-            try:
+        try:
+            if watch_task:
                 stop_event.set()
                 watch_task.cancel()
                 await watch_task
-            except asyncio.exceptions.CancelledError:
-                pass
+
+            if discord_task:
+                discord_task.cancel()
+                await discord_task
+        except asyncio.exceptions.CancelledError:
+            pass
 
         if FILES_DIRECTORY.is_dir():
             shutil.rmtree(FILES_DIRECTORY)
@@ -197,6 +208,18 @@ socket = SocketManager(
 
 
 # -------------------------------------------------------------------------------
+#                               SLACK HANDLER
+# -------------------------------------------------------------------------------
+
+if os.environ.get("SLACK_BOT_TOKEN") and os.environ.get("SLACK_SIGNING_SECRET"):
+    from chainlit.slack.app import slack_app_handler
+
+    @app.post("/slack/events")
+    async def endpoint(req: Request):
+        return await slack_app_handler.handle(req)
+
+
+# -------------------------------------------------------------------------------
 #                               HTTP HANDLERS
 # -------------------------------------------------------------------------------
 
@@ -211,15 +234,17 @@ def get_html_template():
     JS_PLACEHOLDER = "<!-- JS INJECTION PLACEHOLDER -->"
     CSS_PLACEHOLDER = "<!-- CSS INJECTION PLACEHOLDER -->"
 
-    default_url = "https://evidnet.com/ko/"
+    default_url = "https://github.com/Chainlit/chainlit"
+    default_meta_image_url = "https://evidnet.com/wp-content/uploads/2022/11/about-us_img-1.png"
     url = config.ui.github or default_url
+    meta_image_url = config.ui.custom_meta_image_url or default_meta_image_url
 
     tags = f"""<title>{config.ui.name}</title>
     <meta name="description" content="{config.ui.description}">
     <meta property="og:type" content="website">
     <meta property="og:title" content="{config.ui.name}">
     <meta property="og:description" content="{config.ui.description}">
-    <meta property="og:image" content="https://evidnet.com/wp-content/uploads/2022/11/about-us_img-1.png">
+    <meta property="og:image" content="{meta_image_url}">
     <meta property="og:url" content="{url}">"""
 
     js = f"""<script>{f"window.theme = {json.dumps(config.ui.theme.to_dict())}; " if config.ui.theme else ""}</script>"""
@@ -606,7 +631,6 @@ async def get_user_threads(
         raise HTTPException(status_code=400, detail="Data persistence is not enabled")
 
     payload.filter.userId = current_user.id
-    payload.filter.userIdentifier = current_user.identifier
 
     res = await data_layer.list_threads(payload.pagination, payload.filter)
     return JSONResponse(content=res.to_dict())

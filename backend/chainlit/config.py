@@ -4,7 +4,7 @@ import site
 import sys
 from importlib import util
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union, Literal
 
 import tomli
 from chainlit.logger import logger
@@ -127,14 +127,18 @@ hide_cot = false
 # Specify a custom font url.
 # custom_font = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap"
 
+# Specify a custom meta image url.
+# custom_meta_image_url = "https://chainlit-cloud.s3.eu-west-3.amazonaws.com/logo/chainlit_banner.png"
+
 # Specify a custom build directory for the frontend.
 # This can be used to customize the frontend code.
 # Be careful: If this is a relative path, it should not start with a slash.
 # custom_build = "./public/build"
 
-# Override default MUI light theme. (Check theme.ts)
 [UI.theme]
+    #layout = "wide"
     #font_family = "Inter, sans-serif"
+# Override default MUI light theme. (Check theme.ts)
 [UI.theme.light]
     #background = "#FAFAFA"
     #paper = "#FFFFFF"
@@ -194,6 +198,7 @@ class Palette(DataClassJsonMixin):
 @dataclass()
 class Theme(DataClassJsonMixin):
     font_family: Optional[str] = None
+    layout: Optional[Literal["default", "wide"]] = "default"
     light: Optional[Palette] = None
     dark: Optional[Palette] = None
 
@@ -242,6 +247,9 @@ class UISettings(DataClassJsonMixin):
     custom_css: Optional[str] = None
     custom_js: Optional[str] = None
     custom_font: Optional[str] = None
+    # Optional custom meta tag for image preview
+    custom_meta_image_url: Optional[str] = None
+    # Optional custom build directory for the frontend
     custom_build: Optional[str] = None
 
 

@@ -20,6 +20,8 @@ import { Translator } from 'components/i18n';
 import { useTranslation } from 'components/i18n/Translator';
 import { TaskList } from 'components/molecules/tasklist/TaskList';
 
+import { useLayoutMaxWidth } from 'hooks/useLayoutMaxWidth';
+
 import { apiClientState } from 'state/apiClient';
 import { IAttachment, attachmentsState } from 'state/chat';
 import { projectSettingsState } from 'state/project';
@@ -59,6 +61,7 @@ const Chat = () => {
   );
 
   const { t } = useTranslation();
+  const layoutMaxWidth = useLayoutMaxWidth();
 
   useEffect(() => {
     uploadFileRef.current = uploadFile;
@@ -203,12 +206,11 @@ const Chat = () => {
         </>
       ) : null}
       <Stack width="100%">
-        <Box my={1} />
         {error ? (
           <Box
             sx={{
               width: '100%',
-              maxWidth: '48rem',
+              maxWidth: layoutMaxWidth,
               mx: 'auto',
               my: 2
             }}
@@ -222,7 +224,7 @@ const Chat = () => {
           <Box
             sx={{
               width: '100%',
-              maxWidth: '48rem',
+              maxWidth: layoutMaxWidth,
               mx: 'auto',
               my: 2
             }}
