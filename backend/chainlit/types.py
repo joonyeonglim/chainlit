@@ -47,7 +47,6 @@ class Pagination(BaseModel):
 class ThreadFilter(BaseModel):
     feedback: Optional[Literal[0, 1]] = None
     userId: Optional[str] = None
-    userIdentifier: Optional[str] = None
     search: Optional[str] = None
 
 
