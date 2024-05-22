@@ -3,13 +3,12 @@ import mimetypes
 import re
 import uuid
 from io import BytesIO
-from typing import Dict, List, Optional, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 if TYPE_CHECKING:
     from discord.abc import MessageableChannel
 
 import discord
-
 import filetype
 import httpx
 from chainlit.config import config
@@ -19,11 +18,10 @@ from chainlit.element import Element, ElementDict
 from chainlit.emitter import BaseChainlitEmitter
 from chainlit.logger import logger
 from chainlit.message import Message, StepDict
+from chainlit.telemetry import trace
 from chainlit.types import Feedback
 from chainlit.user import PersistedUser, User
 from chainlit.user_session import user_session
-from chainlit.telemetry import trace
-
 from discord.ui import Button, View
 
 
@@ -36,7 +34,9 @@ class FeedbackView(View):
     async def thumbs_down(self, interaction: discord.Interaction, button: Button):
         if data_layer := get_data_layer():
             try:
-                await data_layer.upsert_feedback(Feedback(forId=self.step_id, value=0))
+                thread_id = context_var.get().session.thread_id
+                feedback = Feedback(forId=self.step_id, threadId=thread_id, value=0)
+                await data_layer.upsert_feedback(feedback)
             except Exception as e:
                 logger.error(f"Error upserting feedback: {e}")
         if interaction.message:
@@ -47,7 +47,9 @@ class FeedbackView(View):
     async def thumbs_up(self, interaction: discord.Interaction, button: Button):
         if data_layer := get_data_layer():
             try:
-                await data_layer.upsert_feedback(Feedback(forId=self.step_id, value=1))
+                thread_id = context_var.get().session.thread_id
+                feedback = Feedback(forId=self.step_id, threadId=thread_id, value=1)
+                await data_layer.upsert_feedback(feedback)
             except Exception as e:
                 logger.error(f"Error upserting feedback: {e}")
         if interaction.message:
@@ -98,10 +100,16 @@ class DiscordEmitter(BaseChainlitEmitter):
         if not self.enabled:
             return
 
+        step_type = step_dict.get("type")
+        is_message = step_type in [
+            "user_message",
+            "assistant_message",
+            "system_message",
+        ]
         is_chain_of_thought = bool(step_dict.get("parentId"))
         is_empty_output = not step_dict.get("output")
 
-        if is_chain_of_thought or is_empty_output:
+        if is_chain_of_thought or is_empty_output or not is_message:
             return
         else:
             enable_feedback = not step_dict.get("disableFeedback") and get_data_layer()
@@ -122,6 +130,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 client = discord.Client(intents=intents)
+
 
 @trace
 def init_discord_context(
@@ -145,7 +154,7 @@ USER_PREFIX = "discord_"
 async def get_user(discord_user: Union[discord.User, discord.Member]):
     if discord_user.id in users_by_discord_id:
         return users_by_discord_id[discord_user.id]
-    
+
     metadata = {
         "name": discord_user.name,
         "id": discord_user.id,
@@ -161,7 +170,7 @@ async def get_user(discord_user: Union[discord.User, discord.Member]):
                 users_by_discord_id[discord_user.id] = persisted_user
         except Exception as e:
             logger.error(f"Error creating user: {e}")
-       
+
     return users_by_discord_id[discord_user.id]
 
 

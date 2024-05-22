@@ -1,12 +1,14 @@
 import { useUpload } from 'hooks';
 import { useRecoilValue } from 'recoil';
 
-import AttachFile from '@mui/icons-material/AttachFile';
-import { IconButton, Tooltip } from '@mui/material';
+
+import { IconButton, Theme, Tooltip, useMediaQuery } from '@mui/material';
 
 import { FileSpec } from '@chainlit/react-client';
 
 import { Translator } from 'components/i18n';
+
+import AttachmentIcon from 'assets/attachment';
 
 import { projectSettingsState } from 'state/project';
 
@@ -51,7 +53,7 @@ const UploadButton = ({
           color="inherit"
           {...getRootProps({ className: 'dropzone' })}
         >
-          <AttachFile />
+          <AttachmentIcon fontSize={size} />
         </IconButton>
       </span>
     </Tooltip>

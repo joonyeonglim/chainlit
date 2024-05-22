@@ -206,7 +206,6 @@ const Chat = () => {
         </>
       ) : null}
       <Stack width="100%">
-        <Box my={1} />
         {error ? (
           <Box
             sx={{
