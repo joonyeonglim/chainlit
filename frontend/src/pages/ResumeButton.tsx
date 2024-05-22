@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Box, Button, Skeleton, Stack } from '@mui/material';
 import { useChatInteract } from '@chainlit/react-client';
 import { Translator } from 'components/i18n';
+import { useLayoutMaxWidth } from 'hooks/useLayoutMaxWidth';
 import { projectSettingsState } from 'state/project';
 
 interface Props {
@@ -16,6 +17,7 @@ interface Props {
 
 export default function ResumeButton({ threadId, isLoading, onThreadsFetched }: Props) {
   const navigate = useNavigate();
+  const layoutMaxWidth = useLayoutMaxWidth();
   const pSettings = useRecoilValue(projectSettingsState);
   const { clear, setIdToResume } = useChatInteract();
 
@@ -83,7 +85,7 @@ export default function ResumeButton({ threadId, isLoading, onThreadsFetched }: 
       sx={{
         boxSizing: 'border-box',
         width: '100%',
-        maxWidth: '48rem',
+        maxWidth: layoutMaxWidth,
         m: 'auto',
         justifyContent: 'center'
       }}

@@ -8,31 +8,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing unreleased!
 
-## [1.1.0rc1] - 2024-05-06
-
-### Changed
-
-- bumped literalai package version to 0.0.600
-
-## [1.1.0rc0] - 2024-05-06
+## [1.1.0] - 2024-05-13
 
 ### Added
 
+- You can know serve your Chainlit app as a Slack bot
+- You can know serve your Chainlit app as a Discord bot
 - `cl.on_audio_chunk` decorator to process incoming the user incoming audio stream
 - `cl.on_audio_end` decorator to react to the end of the user audio stream
 - The `cl.Audio` element now has an `auto_play` property
+- `layout` theme config, wide or default
 - `http_referer` is now available in `cl.user_session`
 
 ### Changed
 
 - The UI has been revamped, especially the navigation
 - The arrow up button has been removed from the input bar, however pressing the arrow up key still opens the last inputs menu
+- The user session will no longer be persisted as metadata if > 1mb
 - **[breaking]** the `send()` method on `cl.Message` now returns the message instead of the message id
 - **[breaking]** The `multi_modal` feature has been renamed `spontaneous_file_upload` in the config
 - Element display property now defaults to `inline` instead of `side`
+- The SQL Alchemy data layer logging has been improved
 
 ### Fixed
 
+- Fixed a bug disconnecting the user when loading the chat history
+- Elements based on an URL should now have a mime type
 - Stopping a task should now work better (using asyncio task.cancel)
 
 ## [1.0.506] - 2024-04-30
