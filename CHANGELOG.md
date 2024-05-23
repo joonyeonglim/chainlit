@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing unreleased!
 
+## [1.1.202] - 2024-05-22
+
+### Added
+
+- Support for video players like youtube or vimeo
+
+### Fixed
+
+- Fix audio capture on windows browsers
+
 ## [1.1.201] - 2024-05-21
 
 ### Fixed
