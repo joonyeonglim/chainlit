@@ -589,7 +589,6 @@ async def update_feedback(
     data_layer = get_data_layer()
     if not data_layer:
         raise HTTPException(status_code=500, detail="Data persistence is not enabled")
-
     try:
         feedback_id = await data_layer.upsert_feedback(current_user=current_user, feedback=update.feedback)
     except Exception as e:
