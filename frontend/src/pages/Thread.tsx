@@ -21,11 +21,9 @@ import { apiClientState } from 'state/apiClient';
 import Page from './Page';
 import ResumeButton from './ResumeButton';
 import { fetchThreads } from 'state/fetchThreads';
-import { useNavigate } from 'react-router-dom';
 
 
 export default function ThreadPage() {
-  const navigate = useNavigate();
   const { id } = useParams();
   const apiClient = useRecoilValue(apiClientState);
   const accessToken = useRecoilValue(accessTokenState);
@@ -37,6 +35,7 @@ export default function ThreadPage() {
       revalidateOnFocus: false
     }
   );
+
   const [threadHistory, setThreadHistory] = useRecoilState(threadHistoryState);
 
   const { threadId } = useChatMessages();
@@ -56,12 +55,6 @@ export default function ThreadPage() {
       });
     }
   }, [id]);
-
-  useEffect(() => {
-    if (data === null) {
-      navigate('/'); // data가 null인 경우에 '/'로 navigate
-    }
-  }, [data, navigate]);
 
   return (
     <Page>
