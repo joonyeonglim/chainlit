@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { useRecoilState, useSetRecoilState } from 'recoil';
+import {useRecoilState, useRecoilValue, useSetRecoilState} from 'recoil';
 import 'regenerator-runtime';
 
 import TuneIcon from '@mui/icons-material/Tune';
@@ -43,6 +43,7 @@ const Input = memo(
     const [attachments, setAttachments] = useRecoilState(attachmentsState);
     const setInputHistory = useSetRecoilState(inputHistoryState);
     const setChatSettingsOpen = useSetRecoilState(chatSettingsOpenState);
+    const chatSettings = useRecoilValue(chatSettingsState); // 새로운 Recoil 상태를 사용
     const setChatSettings = useSetRecoilState(chatSettingsState); // 상태 업데이트 함수 추가
 
     const ref = useRef<HTMLDivElement>(null);
@@ -157,7 +158,7 @@ const Input = memo(
           onFileUploadError={onFileUploadError}
           onFileUpload={onFileUpload}
         />
-        {chatSettingsInputs.length > 0 && (
+        {!chatSettings.hideSettings && (
           <IconButton
             id="chat-settings-open-modal"
             disabled={disabled}
