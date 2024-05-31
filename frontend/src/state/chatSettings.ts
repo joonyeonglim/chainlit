@@ -7,5 +7,6 @@ export const chatSettingsState = atom({
     recommendationsClicked: false,
     recommendations: [],
     showButtons: false,
+    hideSettings: true,
   },
 });
