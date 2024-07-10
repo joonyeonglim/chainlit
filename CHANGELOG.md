@@ -8,6 +8,95 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing unreleased!
 
+## [1.1.306] - 2024-07-03
+
+### Added
+
+- Messages are now editable. You can disable this feature with `config.features.edit_message = false`
+- `cl.chat_context` to help keeping track of the messages of the current thread
+- You can now enable debug_mode when mounting Chainlit as a sub app by setting the `CHAINLIT_DEBUG` to `true`.
+
+### Fixed
+
+- Message are now collapsible if too long
+- Only first level tool calls are displayed
+- OAuth redirection when mounting Chainlit on a FastAPI app should now work
+- The Langchain callback handler should better capture chain runs
+- The Llama Index callback handler should now work with other decorators
+
+## [1.1.305] - 2024-06-26
+
+### Added
+
+- Mistral AI instrumentation
+
+## [1.1.304] - 2024-06-21
+
+### Fixed
+
+- OAuth final redirection should account for root path if provided
+
+## [1.1.303] - 2024-06-20
+
+### Fixed
+
+- OAuth URL redirection should be correctly formed when using CHAINLIT_URL + submounted chainlit app
+
+## [1.1.302] - 2024-06-16
+
+### Added
+
+- Width and height option for the copilot bubble
+
+### Fixed
+
+- Chat profile icon in copilot should load
+- Theme should work with Copilot
+
+### Removed
+
+- Running toast when an action is running
+
+## [1.1.301] - 2024-06-14
+
+### Fixed
+
+- Azure AD oauth get_user_info not implemented error
+
+## [1.1.300] - 2024-06-13
+
+### Added
+
+- `@cl.set_starters` and `cl.Starter` to suggest conversation starters to the user
+- Teams integration
+- Expand copilot button
+- Debug mode when starting with `-d`. Only available if the data layer supports it. This replaces the Prompt Playground.
+- `default` theme config in `config.toml`
+- If only one OAuth provider is set, automatically redirect the user to it
+- Input streaming for tool calls
+
+### Changed
+
+- **[BREAKING]** Custom endpoints have been reworked. You should now mount your Chainlit app as a FastAPI subapp.
+- **[BREAKING]** Avatars have been reworked. `cl.Avatar` has been removed, instead place your avatars by name in `/public/avatars/*`
+- **[BREAKING]** The `running`, `took_one` and `took_other` translations have been replaced by `used`.
+- **[BREAKING]** `root` attribute of `cl.Step` has been removed. Use `cl.Message` to send root level messages.
+- Chain of Thought has been reworked. Only steps of type `tool` will be displayed if `hide_cot` is false
+- The `show_readme_as_default` config has been removed
+- No longer collapse root level messages
+- The blue alert "Continuing chat" has been removed.
+
+### Fix
+
+- The Chat Profile description should now disappear when not hovered.
+- Error handling of steps has been improved
+- No longer stream the first token twice
+- Copilot should now work as expected even if the user is closing/reopening it
+- Copilot CSS should no longer leak/be impacted by the host website CSS
+- Fix various `cl.Context` errors
+- Reworked message padding and spacing
+- Chat profile should now support non-ASCII characters (like chinese)
+
 ## [1.1.202] - 2024-05-22
 
 ### Added

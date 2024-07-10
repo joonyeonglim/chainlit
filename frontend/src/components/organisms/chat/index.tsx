@@ -1,7 +1,7 @@
 import { useUpload } from 'hooks';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useRecoilValue, useSetRecoilState, atom } from 'recoil';
+import { useSetRecoilState } from 'recoil';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -9,36 +9,35 @@ import { Alert, Box, Stack } from '@mui/material';
 
 import {
   threadHistoryState,
+  useAuth,
   useChatData,
   useChatInteract,
   useChatMessages,
-  useChatSession
+  useConfig
 } from '@chainlit/react-client';
 
 import { ErrorBoundary } from 'components/atoms/ErrorBoundary';
 import { Translator } from 'components/i18n';
 import { useTranslation } from 'components/i18n/Translator';
+import ScrollContainer from 'components/molecules/messages/ScrollContainer';
 import { TaskList } from 'components/molecules/tasklist/TaskList';
 
 import { useLayoutMaxWidth } from 'hooks/useLayoutMaxWidth';
 
-import { apiClientState } from 'state/apiClient';
 import { IAttachment, attachmentsState } from 'state/chat';
-import { projectSettingsState } from 'state/project';
 
 import Messages from './Messages';
 import DropScreen from './dropScreen';
 import InputBox from './inputBox';
+import WelcomeScreen from './welcomeScreen';
 import RecommendQuestions from './inputBox/Recommends';
 import { chatSettingsState } from 'state/chatSettings'; // 상태 관리를 위한 새로운 Recoil 상태
 
 const Chat = () => {
-  const { idToResume } = useChatSession();
-
-  const projectSettings = useRecoilValue(projectSettingsState);
+  const { user } = useAuth();
+  const { config } = useConfig();
   const setAttachments = useSetRecoilState(attachmentsState);
   const setThreads = useSetRecoilState(threadHistoryState);
-  const apiClient = useRecoilValue(apiClientState);
   const setChatSettings = useSetRecoilState(chatSettingsState); // 새로운 상태 업데이트 함수를 사용
 
   const [autoScroll, setAutoScroll] = useState(true);
@@ -50,14 +49,11 @@ const Chat = () => {
   const fileSpec = useMemo(
     () => ({
       max_size_mb:
-        projectSettings?.features?.spontaneous_file_upload?.max_size_mb || 500,
-      max_files:
-        projectSettings?.features?.spontaneous_file_upload?.max_files || 20,
-      accept: projectSettings?.features?.spontaneous_file_upload?.accept || [
-        '*/*'
-      ]
+        config?.features?.spontaneous_file_upload?.max_size_mb || 500,
+      max_files: config?.features?.spontaneous_file_upload?.max_files || 20,
+      accept: config?.features?.spontaneous_file_upload?.accept || ['*/*']
     }),
-    [projectSettings]
+    [config]
   );
 
   const { t } = useTranslation();
@@ -72,23 +68,19 @@ const Chat = () => {
       const attachements: IAttachment[] = payloads.map((file) => {
         const id = uuidv4();
 
-        const { xhr, promise } = uploadFileRef.current(
-          apiClient,
-          file,
-          (progress) => {
-            setAttachments((prev) =>
-              prev.map((attachment) => {
-                if (attachment.id === id) {
-                  return {
-                    ...attachment,
-                    uploadProgress: progress
-                  };
-                }
-                return attachment;
-              })
-            );
-          }
-        );
+        const { xhr, promise } = uploadFileRef.current(file, (progress) => {
+          setAttachments((prev) =>
+            prev.map((attachment) => {
+              if (attachment.id === id) {
+                return {
+                  ...attachment,
+                  uploadProgress: progress
+                };
+              }
+              return attachment;
+            })
+          );
+        });
 
         promise
           .then((res) => {
@@ -165,7 +157,8 @@ const Chat = () => {
   useEffect(() => {
     const currentPage = new URL(window.location.href);
     if (
-      projectSettings?.dataPersistence &&
+      user &&
+      config?.dataPersistence &&
       threadId &&
       currentPage.pathname === '/'
     ) {
@@ -179,7 +172,7 @@ const Chat = () => {
   }, []);
 
   const enableMultiModalUpload =
-    !disabled && projectSettings?.features?.spontaneous_file_upload?.enabled;
+    !disabled && config?.features?.spontaneous_file_upload?.enabled;
 
   return (
     <Box
@@ -215,27 +208,16 @@ const Chat = () => {
             </Alert>
           </Box>
         ) : null}
-        {idToResume ? (
-          <Box
-            sx={{
-              width: '100%',
-              maxWidth: layoutMaxWidth,
-              mx: 'auto',
-              my: 2
-            }}
-          >
-            <Alert sx={{ mx: 2 }} severity="info">
-              <Translator path="components.organisms.chat.index.continuingChat" />
-            </Alert>
-          </Box>
-        ) : null}
         <TaskList isMobile={true} />
         <ErrorBoundary>
-          <Messages
+          <ScrollContainer
             autoScroll={autoScroll}
-            projectSettings={projectSettings}
             setAutoScroll={setAutoScroll}
-          />
+          >
+            <WelcomeScreen />
+            <Box py={2} />
+            <Messages />
+          </ScrollContainer>
           <RecommendQuestions />
           <InputBox
             fileSpec={fileSpec}
@@ -243,7 +225,6 @@ const Chat = () => {
             onFileUploadError={onFileUploadError}
             autoScroll={autoScroll}
             setAutoScroll={setAutoScroll}
-            projectSettings={projectSettings}
           />
         </ErrorBoundary>
       </Stack>

@@ -1,77 +1,50 @@
-// ResumeButton.tsx
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useRecoilValue } from 'recoil';
 import { toast } from 'sonner';
-import { Box, Button, Skeleton, Stack } from '@mui/material';
-import { useChatInteract } from '@chainlit/react-client';
+
+import { Box, Button } from '@mui/material';
+
+import {
+  useChatInteract,
+  useChatSession,
+  useConfig
+} from '@chainlit/react-client';
+
 import { Translator } from 'components/i18n';
+import WaterMark from 'components/organisms/chat/inputBox/waterMark';
+
 import { useLayoutMaxWidth } from 'hooks/useLayoutMaxWidth';
-import { projectSettingsState } from 'state/project';
 
 interface Props {
   threadId?: string;
-  isLoading?: boolean;
-  onThreadsFetched: () => Promise<void>;
 }
 
-export default function ResumeButton({ threadId, isLoading, onThreadsFetched }: Props) {
+export default function ResumeButton({ threadId }: Props) {
   const navigate = useNavigate();
   const layoutMaxWidth = useLayoutMaxWidth();
-  const pSettings = useRecoilValue(projectSettingsState);
+  const { config } = useConfig();
   const { clear, setIdToResume } = useChatInteract();
+  const { session, idToResume } = useChatSession();
 
   useEffect(() => {
-    if (!isLoading && threadId && pSettings?.threadResumable) {
-      onClick();
+    if (threadId !== idToResume) {
+      return;
     }
-  }, [threadId, pSettings, isLoading]);
+    if (session?.socket.connected) {
+      // toast.success('Chat resumed successfully');
+    } else if (session?.error) {
+      toast.error("Couldn't resume chat");
+    }
+  }, [session, idToResume, threadId]);
 
-  if (!threadId || !pSettings?.threadResumable) {
+  if (!threadId || !config?.threadResumable) {
     return null;
   }
 
-  if (isLoading) {
-    return (
-      <React.Fragment>
-        {[1, 2, 3].map((index) => (
-          <Stack
-            key={`thread-skeleton-${index}`}
-            sx={{
-              px: 2,
-              gap: 4,
-              mt: 5,
-              flexDirection: 'row',
-              justifyContent: 'center'
-            }}
-          >
-            <Stack>
-              <Skeleton width={50} />
-              <Skeleton width={50} />
-            </Stack>
-            <Skeleton
-              variant="rounded"
-              sx={{
-                maxWidth: '60rem',
-                width: '100%',
-                height: 100
-              }}
-            />
-          </Stack>
-        ))}
-      </React.Fragment>
-    );
-  }
-
-  const onClick = async () => {
+  const onClick = () => {
     clear();
     setIdToResume(threadId!);
-
-    if (onThreadsFetched) {
-      await onThreadsFetched();
-    }
-
-    if (!pSettings?.dataPersistence) {
+    if (!config?.dataPersistence) {
       navigate('/');
     }
   };
@@ -90,12 +63,10 @@ export default function ResumeButton({ threadId, isLoading, onThreadsFetched }: 
         justifyContent: 'center'
       }}
     >
-      <Button id="resumeThread"
-              onClick={onClick}
-              variant="contained"
-              style={{ display: 'none' }}>
+      <Button id="resumeThread" onClick={onClick} variant="contained">
         <Translator path="pages.ResumeButton.resumeChat" />
       </Button>
+      <WaterMark />
     </Box>
   );
 }

@@ -1,11 +1,10 @@
-import React from 'react';
-import { useAuth } from 'api/auth';
 import { memo, useCallback } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { v4 as uuidv4 } from 'uuid';
 
 import { Box } from '@mui/material';
 
+import { useAuth } from '@chainlit/react-client';
 import { FileSpec, IStep, useChatInteract } from '@chainlit/react-client';
 
 import ScrollDownButton from 'components/atoms/buttons/scrollDownButton';
@@ -13,7 +12,6 @@ import ScrollDownButton from 'components/atoms/buttons/scrollDownButton';
 import { useLayoutMaxWidth } from 'hooks/useLayoutMaxWidth';
 
 import { IAttachment } from 'state/chat';
-import { IProjectSettings } from 'state/project';
 import { inputHistoryState } from 'state/userInputHistory';
 
 import Input from './input';
@@ -25,7 +23,6 @@ interface Props {
   onFileUploadError: (error: string) => void;
   setAutoScroll: (autoScroll: boolean) => void;
   autoScroll?: boolean;
-  projectSettings?: IProjectSettings;
 }
 
 const InputBox = memo(
@@ -34,13 +31,14 @@ const InputBox = memo(
     onFileUpload,
     onFileUploadError,
     setAutoScroll,
-    autoScroll,
-    projectSettings
+    autoScroll
   }: Props) => {
     const layoutMaxWidth = useLayoutMaxWidth();
     const setInputHistory = useSetRecoilState(inputHistoryState);
+
     const { user } = useAuth();
     const { sendMessage, replyMessage } = useChatInteract();
+    // const tokenCount = useRecoilValue(tokenCountState);
 
     const onSubmit = useCallback(
       async (msg: string, attachments?: IAttachment[]) => {
@@ -50,7 +48,7 @@ const InputBox = memo(
           name: user?.identifier || 'User',
           type: 'user_message',
           output: msg,
-          createdAt: new Date().toISOString(),
+          createdAt: new Date().toISOString()
         };
 
         setInputHistory((old) => {
@@ -77,7 +75,7 @@ const InputBox = memo(
         setAutoScroll(true);
         sendMessage(message, fileReferences);
       },
-      [user, sendMessage, setInputHistory]
+      [user, sendMessage]
     );
 
     const onReply = useCallback(
@@ -88,7 +86,7 @@ const InputBox = memo(
           name: user?.identifier || 'User',
           type: 'user_message',
           output: msg,
-          createdAt: new Date().toISOString(),
+          createdAt: new Date().toISOString()
         };
 
         replyMessage(message);
@@ -103,7 +101,8 @@ const InputBox = memo(
         position="relative"
         flexDirection="column"
         gap={1}
-        p={2}
+        pb={2}
+        px={2}
         sx={{
           boxSizing: 'border-box',
           width: '100%',
@@ -115,13 +114,26 @@ const InputBox = memo(
         {!autoScroll ? (
           <ScrollDownButton onClick={() => setAutoScroll(true)} />
         ) : null}
-        <Input
-          fileSpec={fileSpec}
-          onFileUpload={onFileUpload}
-          onFileUploadError={onFileUploadError}
-          onSubmit={onSubmit}
-          onReply={onReply}
-        />
+        <Box>
+          <Input
+            fileSpec={fileSpec}
+            onFileUpload={onFileUpload}
+            onFileUploadError={onFileUploadError}
+            onSubmit={onSubmit}
+            onReply={onReply}
+          />
+          {/* {tokenCount > 0 && ( */}
+          {/* <Stack flexDirection="row" alignItems="center">
+          <Typography
+            sx={{ ml: 'auto' }}
+            color="text.secondary"
+            variant="caption"
+          >
+            Token usage: {tokenCount}
+          </Typography>
+        </Stack> */}
+          {/* )} */}
+        </Box>
         <WaterMark />
       </Box>
     );

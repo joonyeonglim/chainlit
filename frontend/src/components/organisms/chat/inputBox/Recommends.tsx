@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSetRecoilState, useRecoilValue } from 'recoil';
 import { Box, Button } from '@mui/material';
-import { useChatData, useChatInteract, IStep } from '@chainlit/react-client';
+import { useChatData, useChatInteract, IStep, useAuth } from '@chainlit/react-client';
 import { v4 as uuidv4 } from 'uuid';
-import { useAuth } from 'api/auth';
 
 import { IAttachment } from 'state/chat';
 import { inputHistoryState } from 'state/userInputHistory';

@@ -3,9 +3,12 @@ import Telegram from '@mui/icons-material/Telegram';
 import { Tooltip } from '@mui/material';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
-import InputAdornment from '@mui/material/InputAdornment';
 
-import { useChatData, useChatInteract } from '@chainlit/react-client';
+import {
+  useChatData,
+  useChatInteract,
+  useChatMessages
+} from '@chainlit/react-client';
 
 import { Translator } from 'components/i18n';
 
@@ -16,6 +19,7 @@ interface SubmitButtonProps {
 
 const SubmitButton = ({ disabled, onSubmit }: SubmitButtonProps) => {
   const { loading } = useChatData();
+  const { firstInteraction } = useChatMessages();
   const { stopTask } = useChatInteract();
 
   const handleClick = () => {
@@ -29,19 +33,7 @@ const SubmitButton = ({ disabled, onSubmit }: SubmitButtonProps) => {
         color: 'text.secondary'
       }}
     >
-      {!loading ? (
-        <Tooltip
-          title={
-            <Translator path="components.organisms.chat.inputBox.SubmitButton.sendMessage" />
-          }
-        >
-          <InputAdornment position="end">
-            <IconButton disabled={disabled} color="inherit" onClick={onSubmit}>
-              <Telegram />
-            </IconButton>
-          </InputAdornment>
-        </Tooltip>
-      ) : (
+      {loading && firstInteraction ? (
         <Tooltip
           title={
             <Translator path="components.organisms.chat.inputBox.SubmitButton.stopTask" />
@@ -49,6 +41,16 @@ const SubmitButton = ({ disabled, onSubmit }: SubmitButtonProps) => {
         >
           <IconButton id="stop-button" onClick={handleClick}>
             <StopCircle />
+          </IconButton>
+        </Tooltip>
+      ) : (
+        <Tooltip
+          title={
+            <Translator path="components.organisms.chat.inputBox.SubmitButton.sendMessage" />
+          }
+        >
+          <IconButton disabled={disabled} color="inherit" onClick={onSubmit}>
+            <Telegram />
           </IconButton>
         </Tooltip>
       )}

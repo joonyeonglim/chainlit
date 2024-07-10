@@ -1,5 +1,4 @@
-import { apiClient } from 'api';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { useRecoilValue } from 'recoil';
 import { toast } from 'sonner';
 
@@ -13,7 +12,11 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
-import { ClientError, accessTokenState } from '@chainlit/react-client';
+import {
+  ChainlitContext,
+  ClientError,
+  accessTokenState
+} from '@chainlit/react-client';
 
 import { Translator } from 'components/i18n';
 
@@ -25,6 +28,7 @@ interface Props {
 const DeleteThreadButton = ({ threadId, onDelete }: Props) => {
   const [open, setOpen] = useState(false);
   const accessToken = useRecoilValue(accessTokenState);
+  const apiClient = useContext(ChainlitContext);
 
   const handleClickOpen = () => {
     setOpen(true);
