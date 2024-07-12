@@ -331,7 +331,7 @@ def get_user_facing_url(url: URL):
     if config_url.path.endswith("/"):
         config_url = config_url.replace(path=config_url.path[:-1])
 
-    return config_url.__str__()
+    return config_url.__str__() + url.path
 
 
 @router.get("/auth/config")
@@ -420,7 +420,6 @@ async def oauth_login(provider_id: str, request: Request):
         )
 
     random = random_secret(32)
-
     params = urllib.parse.urlencode(
         {
             "client_id": provider.client_id,
