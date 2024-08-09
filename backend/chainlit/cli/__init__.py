@@ -23,6 +23,7 @@ from chainlit.markdown import init_markdown
 from chainlit.secret import random_secret
 from chainlit.telemetry import trace_event
 from chainlit.utils import check_file, ensure_jwt_secret
+from uvicorn.config import LOGGING_CONFIG
 
 
 # Create the main command group for Chainlit CLI
@@ -42,6 +43,7 @@ def run_chainlit(target: str):
 
     ssl_certfile = os.environ.get("CHAINLIT_SSL_CERT", None)
     ssl_keyfile = os.environ.get("CHAINLIT_SSL_KEY", None)
+    log_config = os.environ.get("LOG_CONFIG", None)
 
     ws_per_message_deflate_env = os.environ.get(
         "UVICORN_WS_PER_MESSAGE_DEFLATE", "true"
@@ -75,6 +77,9 @@ def run_chainlit(target: str):
 
     log_level = "debug" if config.run.debug else "error"
 
+    if log_config is None:
+        log_config = LOGGING_CONFIG
+
     # Start the server
     async def start():
         config = uvicorn.Config(
@@ -86,6 +91,7 @@ def run_chainlit(target: str):
             ws_per_message_deflate=ws_per_message_deflate,
             ssl_keyfile=ssl_keyfile,
             ssl_certfile=ssl_certfile,
+            log_config=log_config
         )
         server = uvicorn.Server(config)
         await server.serve()
