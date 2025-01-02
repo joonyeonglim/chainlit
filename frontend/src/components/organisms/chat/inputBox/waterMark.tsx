@@ -15,7 +15,7 @@ export default function WaterMark() {
   return (
     <Stack mx="auto" className="watermark">
       <a
-        href="https://evidnet.com/ko/"
+        href="https://www.infinitaslabs.io"
         target="_blank"
         style={{
           display: 'flex',
