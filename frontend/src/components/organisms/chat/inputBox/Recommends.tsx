@@ -6,12 +6,14 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { IAttachment } from 'state/chat';
 import { inputHistoryState } from 'state/userInputHistory';
-import { chatSettingsState } from 'state/chatSettings'; // 상태 관리를 위한 새로운 Recoil 상태
+import { chatSettingsState } from 'state/chatSettings';
+import { useIsDarkMode } from 'hooks/useIsDarkMode';
 
 const RecommendQuestions = () => {
+  const isDark = useIsDarkMode();
   const setInputHistory = useSetRecoilState(inputHistoryState);
-  const chatSettings = useRecoilValue(chatSettingsState); // 새로운 Recoil 상태를 사용
-  const setChatSettings = useSetRecoilState(chatSettingsState); // 상태 업데이트 함수 추가
+  const chatSettings = useRecoilValue(chatSettingsState);
+  const setChatSettings = useSetRecoilState(chatSettingsState);
   const { sendMessage } = useChatInteract();
   const { chatSettingsValue, chatSettingsInputs } = useChatData();
   const [recommendations, setRecommendations] = useState<string[]>([]);
@@ -20,14 +22,25 @@ const RecommendQuestions = () => {
   useEffect(() => {
     const isRecommendQuestions = chatSettingsValue?.recommendQuestions ?? 'None';
     if (isRecommendQuestions !== 'None') {
-      const newRecommendations = chatSettingsInputs.length > 0 && chatSettingsInputs[chatSettingsInputs.length - 1].id === "recommendQuestions"
-        ? chatSettingsInputs[chatSettingsInputs.length - 1].items.map((item: { value: any; }) => item.value)
-        : [];
+      const newRecommendations =
+        chatSettingsInputs.length > 0 &&
+        chatSettingsInputs[chatSettingsInputs.length - 1].id === 'recommendQuestions'
+          ? chatSettingsInputs[chatSettingsInputs.length - 1].items.map(
+            (item: { value: any }) => item.value
+          )
+          : [];
 
       setRecommendations(newRecommendations);
-      setChatSettings((old) => ({ ...old, recommendations: newRecommendations, showButtons: true })); // 상태 업데이트
+      setChatSettings((old) => ({
+        ...old,
+        recommendations: newRecommendations,
+        showButtons: true
+      }));
     } else {
-      setChatSettings((old) => ({ ...old, showButtons: false })); // 상태 업데이트
+      setChatSettings((old) => ({
+        ...old,
+        showButtons: false
+      }));
     }
   }, [chatSettingsInputs, chatSettingsValue?.recommendQuestions, setChatSettings]);
 
@@ -44,7 +57,7 @@ const RecommendQuestions = () => {
         name: user?.identifier || 'User',
         type: 'user_message',
         output: msg,
-        createdAt: new Date().toISOString(),
+        createdAt: new Date().toISOString()
       };
 
       setInputHistory((old) => {
@@ -70,39 +83,63 @@ const RecommendQuestions = () => {
 
       sendMessage(message, fileReferences);
     },
-    [user, sendMessage]
+    [user, sendMessage, setInputHistory]
   );
 
   const handleQuestionClick = (question: string) => {
-    setChatSettings((old) => ({ ...old, showButtons: false, recommendations: [] })); // 상태 업데이트
-    onSubmit(question, []);   // 질문 전송
+    setChatSettings((old) => ({
+      ...old,
+      showButtons: false,
+      recommendations: []
+    }));
+    onSubmit(question, []);
   };
 
   return (
-    <Box
-      display="flex"
-      position="relative"
-      flexDirection="column"
-      gap={1}
-      p={2}
-      sx={{
-        boxSizing: 'border-box',
-        width: '100%',
-        maxWidth: '48rem',
-        m: 'auto',
-        justifyContent: 'center'
-      }}
-    >
-      {chatSettings.showButtons && (
-        <Box display="flex" justifyContent="center" mb={2}>
+    <>
+      {chatSettings.showButtons && recommendations.length > 0 && (
+        <Box
+          display="flex"
+          flexDirection="column"
+          // 버튼 간 간격 (8px)
+          gap={0.7}
+          // 박스 크기를 컨텐츠에 맞춤
+          width="fit-content"
+          maxWidth="48rem"            // 최대 크기는 원하는 만큼 제한 (InputBox 폭에 맞춰 조정)
+          // 내용물 기준으로 테두리 박스가 타이트하게 잡히도록 최소화된 padding
+          p={1}
+          // 테두리 & 모서리 둥글림
+          sx={{
+            boxSizing: 'border-box',
+            border: '1px solid #ccc',
+            borderRadius: '8px',
+            // 수평 가운데 정렬
+            margin: 'auto',
+            wordBreak: 'break-word',  // 너무 긴 단어가 있을 때 줄바꿈 처리
+          }}
+        >
           {recommendations.map((question, index) => (
-            <Button key={index} variant="outlined" onClick={() => handleQuestionClick(question)} sx={{ margin: '0 8px' }}>
+            <Button
+              key={index}
+              variant="contained"
+              onClick={() => handleQuestionClick(question)}
+              sx={{
+                // 부모 Box의 gap으로 간격을 관리하므로 margin은 제거
+                border: 'none',
+                boxShadow: 'none',
+                backgroundColor: isDark ? '#333' : '#f0f0f0',
+                color: isDark ? '#fff' : '#000',
+                '&:hover': {
+                  backgroundColor: isDark ? '#444' : '#e0e0e0'
+                }
+              }}
+            >
               {question}
             </Button>
           ))}
         </Box>
       )}
-    </Box>
+    </>
   );
 };
 
