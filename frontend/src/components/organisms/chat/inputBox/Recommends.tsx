@@ -100,7 +100,8 @@ const RecommendQuestions = () => {
       {chatSettings.showButtons && recommendations.length > 0 && (
         <Box
           display="flex"
-          flexDirection="column"
+          flexDirection="row"
+          flexWrap="wrap"
           // 버튼 간 간격 (8px)
           gap={0.7}
           // 박스 크기를 컨텐츠에 맞춤
@@ -111,7 +112,7 @@ const RecommendQuestions = () => {
           // 테두리 & 모서리 둥글림
           sx={{
             boxSizing: 'border-box',
-            border: '1px solid #ccc',
+            border: '0px solid #ccc',
             borderRadius: '8px',
             // 수평 가운데 정렬
             margin: 'auto',
